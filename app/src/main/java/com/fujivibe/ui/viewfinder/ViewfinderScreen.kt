@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -16,6 +17,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -76,7 +78,12 @@ fun ViewfinderScreen(
         return
     }
 
-    val imageCapture = remember { ImageCapture.Builder().build() }
+    // Locked to the same aspect ratio as the saved capture (below) so what's
+    // framed in the preview matches what actually gets exported — otherwise
+    // a full-screen preview crops more of the frame than the photo does.
+    val imageCapture = remember {
+        ImageCapture.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3).build()
+    }
     var isCapturing by remember { mutableStateOf(false) }
 
     Box(modifier.fillMaxSize()) {
@@ -88,9 +95,10 @@ fun ViewfinderScreen(
                 cameraProviderFuture.addListener(
                     {
                         val cameraProvider = cameraProviderFuture.get()
-                        val preview = Preview.Builder().build().also {
-                            it.setSurfaceProvider(previewView.surfaceProvider)
-                        }
+                        val preview = Preview.Builder()
+                            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                            .build()
+                            .also { it.setSurfaceProvider(previewView.surfaceProvider) }
                         cameraProvider.unbindAll()
                         cameraProvider.bindToLifecycle(
                             lifecycleOwner,
@@ -105,33 +113,35 @@ fun ViewfinderScreen(
             },
         )
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(32.dp)
-                .size(72.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-                .clickable(enabled = !isCapturing) {
-                    isCapturing = true
-                    val outputFile = captureStore.fileForNewCapture()
-                    val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
-                    imageCapture.takePicture(
-                        outputOptions,
-                        ContextCompat.getMainExecutor(context),
-                        object : ImageCapture.OnImageSavedCallback {
-                            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                isCapturing = false
-                                onCaptured()
-                            }
+        Box(Modifier.fillMaxSize().safeDrawingPadding()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(32.dp)
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .clickable(enabled = !isCapturing) {
+                        isCapturing = true
+                        val outputFile = captureStore.fileForNewCapture()
+                        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
+                        imageCapture.takePicture(
+                            outputOptions,
+                            ContextCompat.getMainExecutor(context),
+                            object : ImageCapture.OnImageSavedCallback {
+                                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                                    isCapturing = false
+                                    onCaptured()
+                                }
 
-                            override fun onError(exception: ImageCaptureException) {
-                                isCapturing = false
-                                Log.e(TAG, "Capture failed", exception)
-                            }
-                        },
-                    )
-                },
-        )
+                                override fun onError(exception: ImageCaptureException) {
+                                    isCapturing = false
+                                    Log.e(TAG, "Capture failed", exception)
+                                }
+                            },
+                        )
+                    },
+            )
+        }
     }
 }

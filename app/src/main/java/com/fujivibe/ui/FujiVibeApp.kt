@@ -18,7 +18,8 @@ private sealed interface Screen {
 
 @Composable
 fun FujiVibeApp() {
-    val captureStore = remember { CaptureStore(LocalContext.current) }
+    val context = LocalContext.current
+    val captureStore = remember { CaptureStore(context) }
     var screen by remember { mutableStateOf<Screen>(Screen.Viewfinder) }
 
     MaterialTheme {

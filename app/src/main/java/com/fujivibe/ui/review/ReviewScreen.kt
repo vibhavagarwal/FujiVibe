@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,20 +39,22 @@ fun ReviewScreen(
             )
         }
 
-        Text(
-            text = "Original",
-            color = Color.White,
-            modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
-        )
+        Box(Modifier.fillMaxSize().safeDrawingPadding()) {
+            Text(
+                text = "Original",
+                color = Color.White,
+                modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
+            )
 
-        Button(
-            onClick = {
-                captureStore.discard()
-                onDiscard()
-            },
-            modifier = Modifier.align(Alignment.BottomCenter).padding(32.dp),
-        ) {
-            Text("Discard")
+            Button(
+                onClick = {
+                    captureStore.discard()
+                    onDiscard()
+                },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(32.dp),
+            ) {
+                Text("Discard")
+            }
         }
     }
 }
