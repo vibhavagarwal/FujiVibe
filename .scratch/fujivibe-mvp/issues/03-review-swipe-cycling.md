@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** implemented (9c6768a), reviewed via mattpocock-skills:code-review with a label/bitmap-desync fix applied (6fa1a40); all JVM/app unit tests passing and `:app:assembleDebug` succeeds — not yet verified on a real device by the user (2026-09-08)
+**Status:** done — implemented (9c6768a), reviewed via mattpocock-skills:code-review with a label/bitmap-desync fix applied (6fa1a40), verified on a real device by the user (2026-09-08). On-device testing surfaced one real bug not caught by JVM tests: the default preview size (1024px cap) landed at ~2040px/~3.1MP, making CPU LUT interpolation take ~3.2s/swipe — fixed by shrinking the default to ~480px/~510px-bracket (4c96fcf). Swiping and the Film Simulation color shift both confirmed working after the fix.
 
 - [ ] Swiping left/right moves to the next/previous entry in `[Original, Classic Neg., Nostalgic Neg.]`
 - [ ] The cycle wraps in both directions with no dead end
