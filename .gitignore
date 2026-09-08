@@ -1,0 +1,17 @@
+*.iml
+.gradle/
+/local.properties
+.idea/
+.DS_Store
+/build/
+*/build/
+/captures/
+.cxx/
+*.apk
+*.aab
+.kotlin/
+
+# Third-party LUT source packs are not part of the app's committed source
+# (Fuji's pack is personal-use-only; the abpy pack is CC-BY-NC-SA) —
+# see docs/adr/0003 and docs/adr/0004.
+/raw-assets/
