@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done — implemented (8e7aba8), on-device fixes for rotation/cutout/preview-crop (4a96108, 73be4b1), verified on a real device by the user (2026-09-08)
 
 - [ ] Android project exists targeting minSdk 29, scoped storage only
 - [ ] Launching the app shows a live camera preview with no intermediate screens

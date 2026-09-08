@@ -4,7 +4,7 @@
 
 **Blocked by:** None (pure JVM module — no UI or camera dependency, can proceed in parallel with ticket 01)
 
-**Status:** ready-for-agent
+**Status:** done — implemented (6fd4b24), reviewed via mattpocock-skills:code-review and one interpolation-coverage gap fixed (1d4a7b9); 14/14 JVM tests passing (2026-09-08)
 
 - [ ] `.cube` parser correctly loads a 3D LUT from the pack's text format
 - [ ] The two launch Film Simulations are wired to the correct `provia conversion luts/` sRGB files (not the `cube lut/` files of the same name)
