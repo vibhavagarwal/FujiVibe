@@ -20,9 +20,32 @@ class CaptureStore(context: Context) {
         return file
     }
 
-    fun loadFullResolution(): Bitmap? {
+    fun loadFullResolution(): Bitmap? = decode(BitmapFactory.Options())
+
+    /**
+     * A downscaled decode of the same Capture, so Review's per-swipe LUT render stays fast.
+     * [maxDimension] bounds the longer edge; the source is decoded at the nearest cheaper
+     * power-of-two sample size rather than full resolution.
+     */
+    fun loadPreview(maxDimension: Int = 1024): Bitmap? {
         if (!file.exists()) return null
-        val bitmap = BitmapFactory.decodeFile(file.path) ?: return null
+
+        // inJustDecodeBounds decodes no pixels and always returns null - only outWidth/outHeight
+        // are populated - so this probe can't go through the decode() helper below.
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        val longestEdge = maxOf(bounds.outWidth, bounds.outHeight)
+        var sampleSize = 1
+        while (longestEdge / (sampleSize * 2) >= maxDimension) sampleSize *= 2
+
+        return decode(BitmapFactory.Options().apply { inSampleSize = sampleSize })
+    }
+
+    private fun decode(options: BitmapFactory.Options): Bitmap? {
+        if (!file.exists()) return null
+        val bitmap = BitmapFactory.decodeFile(file.path, options) ?: return null
         return bitmap.correctedForExifOrientation(file)
     }
 
