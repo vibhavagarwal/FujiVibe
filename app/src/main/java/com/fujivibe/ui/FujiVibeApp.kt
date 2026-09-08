@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.fujivibe.capture.CaptureStore
+import com.fujivibe.gallery.MediaStoreGalleryWriter
 import com.fujivibe.ui.review.ReviewScreen
 import com.fujivibe.ui.viewfinder.ViewfinderScreen
 
@@ -20,6 +21,7 @@ private sealed interface Screen {
 fun FujiVibeApp() {
     val context = LocalContext.current
     val captureStore = remember { CaptureStore(context) }
+    val galleryWriter = remember { MediaStoreGalleryWriter(context) }
     var screen by remember { mutableStateOf<Screen>(Screen.Viewfinder) }
 
     MaterialTheme {
@@ -31,6 +33,8 @@ fun FujiVibeApp() {
             Screen.Review -> ReviewScreen(
                 captureStore = captureStore,
                 onDiscard = { screen = Screen.Viewfinder },
+                onExported = { screen = Screen.Viewfinder },
+                galleryWriter = galleryWriter,
             )
         }
     }
