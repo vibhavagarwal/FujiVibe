@@ -59,6 +59,22 @@ class ResourceLutLoaderWiringTest {
     }
 
     @Test
+    fun `Classic Neg interpolates between its real grid points, not just at exact corners`() {
+        val classicNeg = ResourceLutLoader().load(FilmSimulation.CLASSIC_NEG)
+
+        // Data lines for r=3 and r=4 at g=0, b=0 (4th and 5th lines of
+        // "Provia to Classic Neg sRGB.cube", read directly off disk):
+        //   r=3: 0.06269 0.00986 0.00000
+        //   r=4: 0.08403 0.01063 0.00000
+        // Sampling at r = 3.5/31 lands exactly halfway between them (rt=0.5),
+        // with g and b held at exact grid point 0 (gt=bt=0), so the expected
+        // result is a plain midpoint of the two real rows above.
+        val result = classicNeg.sample(r = 3.5f / 31f, g = 0f, b = 0f)
+
+        assertRgbEquals(Rgb(0.07336f, 0.010245f, 0.00000f), result)
+    }
+
+    @Test
     fun `Classic Neg and Nostalgic Neg are distinct LUTs`() {
         val loader = ResourceLutLoader()
 
