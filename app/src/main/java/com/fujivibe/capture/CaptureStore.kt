@@ -26,6 +26,27 @@ class CaptureStore(context: Context) {
         return bitmap.correctedForExifOrientation(file)
     }
 
+    /**
+     * A downscaled decode of the same Capture, so Review's per-swipe LUT render stays fast.
+     * [maxDimension] bounds the longer edge; the source is decoded at the nearest cheaper
+     * power-of-two sample size rather than full resolution.
+     */
+    fun loadPreview(maxDimension: Int = 1024): Bitmap? {
+        if (!file.exists()) return null
+
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        val longestEdge = maxOf(bounds.outWidth, bounds.outHeight)
+        var sampleSize = 1
+        while (longestEdge / (sampleSize * 2) >= maxDimension) sampleSize *= 2
+
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        val bitmap = BitmapFactory.decodeFile(file.path, options) ?: return null
+        return bitmap.correctedForExifOrientation(file)
+    }
+
     fun discard() {
         if (file.exists()) file.delete()
     }
