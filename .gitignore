@@ -15,3 +15,7 @@
 # (Fuji's pack is personal-use-only; the abpy pack is CC-BY-NC-SA) —
 # see docs/adr/0003 and docs/adr/0004.
 /raw-assets/
+
+# Per-ticket git worktrees nested inside the project, so agent sessions get
+# an isolated checkout without cluttering the Projects folder with siblings.
+/.worktrees/
