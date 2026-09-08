@@ -32,6 +32,12 @@ import com.fujivibe.review.ReviewCycle
 private val SwipeThreshold = 56.dp
 
 /**
+ * The entry actually on screen right now, paired with its label so the two can only ever change
+ * together — [ReviewCycle] alone can race ahead of the async render it's driving.
+ */
+private data class DisplayedFrame(val cycle: ReviewCycle, val bitmap: Bitmap?)
+
+/**
  * Shows the current Capture, swiping between Original and the launch Film Simulations (see
  * [ReviewCycle]) with a Discard control. Every entry — Original included — renders through the
  * same [RenderPipeline] call, so there's no UI-side rendering shortcut or duplicated LUT logic.
@@ -45,11 +51,13 @@ fun ReviewScreen(
 ) {
     val previewSource = remember { captureStore.loadPreview()?.toPixelImage() }
     var cycle by remember { mutableStateOf(ReviewCycle.start()) }
-    var renderedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    // Updated only once the matching render completes, so the label and the bitmap on screen
+    // never point at two different entries mid-swipe.
+    var displayed by remember { mutableStateOf(DisplayedFrame(cycle, bitmap = null)) }
 
     LaunchedEffect(cycle, previewSource) {
         val source = previewSource ?: return@LaunchedEffect
-        renderedBitmap = renderPipeline.render(source, cycle.current).toBitmap()
+        displayed = DisplayedFrame(cycle, renderPipeline.render(source, cycle.current).toBitmap())
     }
 
     val swipeThresholdPx = with(LocalDensity.current) { SwipeThreshold.toPx() }
@@ -74,10 +82,10 @@ fun ReviewScreen(
                 )
             },
     ) {
-        renderedBitmap?.let {
+        displayed.bitmap?.let {
             Image(
                 bitmap = it.asImageBitmap(),
-                contentDescription = cycle.label,
+                contentDescription = displayed.cycle.label,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit,
             )
@@ -85,7 +93,7 @@ fun ReviewScreen(
 
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
             Text(
-                text = cycle.label,
+                text = displayed.cycle.label,
                 color = Color.White,
                 modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
             )
