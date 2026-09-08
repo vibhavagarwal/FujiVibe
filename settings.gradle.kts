@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "FujiVibe"
 include(":app")
+include(":render")
