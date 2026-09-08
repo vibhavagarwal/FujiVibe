@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02
 
-**Status:** ready-for-agent
+**Status:** implemented (9c6768a), reviewed via mattpocock-skills:code-review with a label/bitmap-desync fix applied (6fa1a40); all JVM/app unit tests passing and `:app:assembleDebug` succeeds — not yet verified on a real device by the user (2026-09-08)
 
 - [ ] Swiping left/right moves to the next/previous entry in `[Original, Classic Neg., Nostalgic Neg.]`
 - [ ] The cycle wraps in both directions with no dead end
