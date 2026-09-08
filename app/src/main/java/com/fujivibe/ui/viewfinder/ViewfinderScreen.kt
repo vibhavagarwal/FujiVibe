@@ -90,7 +90,13 @@ fun ViewfinderScreen(
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                val previewView = PreviewView(ctx)
+                val previewView = PreviewView(ctx).apply {
+                    // FILL_CENTER (the default) crops the preview to the
+                    // screen's non-4:3 aspect ratio, hiding part of the frame
+                    // that the 4:3 capture still saves in full. FIT_CENTER
+                    // shows the whole framed area the photo will contain.
+                    scaleType = PreviewView.ScaleType.FIT_CENTER
+                }
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                 cameraProviderFuture.addListener(
                     {

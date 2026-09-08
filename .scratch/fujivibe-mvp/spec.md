@@ -72,6 +72,7 @@ FujiVibe is a personal Android app with a Viewfinder screen for shooting a JPEG 
 - Play Store distribution, privacy policy, crash reporting, or analytics.
 - Support for pre-scoped-storage Android versions (below API 29).
 - Any settings/configuration screen.
+- Pinch-to-zoom on the Viewfinder — not part of any of the 24 user stories, and conflicts with the deliberately zero-configuration Viewfinder. Raised during ticket 01 on-device testing (2026-09-08); worth a dedicated post-v1 ticket if framing without it proves limiting in practice, rather than folding into the Viewfinder now.
 
 ## Further Notes
 
