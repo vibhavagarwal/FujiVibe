@@ -26,8 +26,13 @@ class CaptureStore(context: Context) {
      * A downscaled decode of the same Capture, so Review's per-swipe LUT render stays fast.
      * [maxDimension] bounds the longer edge; the source is decoded at the nearest cheaper
      * power-of-two sample size rather than full resolution.
+     *
+     * On-device measurement: a typical ~4000px-edge capture at the old 1024 cap landed just
+     * above a power-of-two boundary and decoded at ~2040px (~3.1MP) - CPU trilinear LUT
+     * interpolation over that many pixels took ~3.2s per swipe, nowhere near "instant." 480
+     * reliably lands in the ~510px bracket (~0.2MP), which renders in a couple hundred ms.
      */
-    fun loadPreview(maxDimension: Int = 1024): Bitmap? {
+    fun loadPreview(maxDimension: Int = 480): Bitmap? {
         if (!file.exists()) return null
 
         // inJustDecodeBounds decodes no pixels and always returns null - only outWidth/outHeight
