@@ -13,7 +13,7 @@ The unmodified Capture, with no Film Simulation applied. Not itself a Film Simul
 _Avoid_: No filter, Untouched, Raw (Raw specifically means `.dng` sensor data, which this app excludes entirely)
 
 **Film Simulation**:
-A named Fuji color look (e.g. Provia, Velvia, Classic Chrome) produced by applying a LUT to the Capture.
+A named Fuji color look (e.g. Provia, Velvia, Classic Chrome) produced by applying a LUT to the Capture. FujiVibe may also ship its own derived variant of a stock look (e.g. Classic Neg. (Pixel), see ADR 0005) when the stock look needs compensating for how this app's Capture differs from a Fuji camera's JPEG — still produced by applying a single LUT, just not itself a stock Fuji-named look.
 _Avoid_: Filter, Preset, Effect
 
 **LUT**:

@@ -43,6 +43,9 @@ android {
     // whole "provia conversion luts" folder rather than just the two v1 files; the extras
     // (Bleach Bypass, DisplayP3 variants) sit unused since ResourceLutLoader only ever asks for
     // names in the FilmSimulation registry.
+    //
+    // derived-luts/ is different: it's FujiVibe's own committed derivative work (see ADR 0005),
+    // not the gitignored third-party pack, so it's always present regardless of local setup.
     sourceSets {
         getByName("main") {
             resources.srcDir(
@@ -50,6 +53,7 @@ android {
                     "raw-assets/abpy-fujifilm-camera-profiles/provia conversion luts"
                 )
             )
+            resources.srcDir(rootProject.layout.projectDirectory.dir("derived-luts"))
         }
     }
 }

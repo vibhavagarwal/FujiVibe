@@ -27,7 +27,7 @@ class LutRenderPipelineDispatchTest {
             )
             val source = PixelImage(width = 1, height = 1, pixels = intArrayOf(0xFF000000.toInt()))
 
-            pipeline.render(source, RenderSelection.Simulation(FilmSimulation.CLASSIC_NEG))
+            pipeline.render(source, RenderSelection.Simulation(FilmSimulation.CLASSIC_NEG_PIXEL))
 
             assertEquals("render-background-worker", threadDuringLutLoad)
             assertNotEquals(callingThreadName, threadDuringLutLoad)

@@ -20,8 +20,8 @@ class ReviewCycleTest {
         val cycle = ReviewCycle.start()
 
         val afterFirstNext = cycle.next()
-        assertEquals(RenderSelection.Simulation(FilmSimulation.CLASSIC_NEG), afterFirstNext.current)
-        assertEquals("Classic Neg.", afterFirstNext.label)
+        assertEquals(RenderSelection.Simulation(FilmSimulation.CLASSIC_NEG_PIXEL), afterFirstNext.current)
+        assertEquals("Classic Neg. (Pixel)", afterFirstNext.label)
 
         val afterSecondNext = afterFirstNext.next()
         assertEquals(RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG), afterSecondNext.current)

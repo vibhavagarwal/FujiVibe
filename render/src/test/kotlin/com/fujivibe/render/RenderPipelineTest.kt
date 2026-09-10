@@ -53,7 +53,7 @@ class RenderPipelineTest {
             }
             val source = PixelImage(width, height, pixels)
 
-            val result = pipeline.render(source, RenderSelection.Simulation(FilmSimulation.CLASSIC_NEG))
+            val result = pipeline.render(source, RenderSelection.Simulation(FilmSimulation.CLASSIC_NEG_PIXEL))
 
             val expectedPixels = IntArray(width * height) { index ->
                 if (index % 2 == 0) expectedBlack else expectedWhite
