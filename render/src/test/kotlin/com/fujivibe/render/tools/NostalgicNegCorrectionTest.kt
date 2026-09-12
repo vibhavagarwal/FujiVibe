@@ -169,6 +169,21 @@ class NostalgicNegCorrectionTest {
     }
 
     @Test
+    fun `correct produces the expected warm, milky near-black for the source LUT's darkest grid entry`() {
+        // Input is "Provia to Nostalgic Neg sRGB.cube"'s actual first grid entry (r=g=b=0 corner).
+        // Expected output independently verified by hand against the committed constants during
+        // final review — also matches derived-luts/Nostalgic Neg Pixel sRGB.cube's first data row
+        // exactly, confirming the committed .cube is in sync with these constants.
+        val input = Rgb(0.0159f, 0.01602f, 0.01456f)
+
+        val result = NostalgicNegCorrection.correct(input)
+
+        assertEquals(0.13351095f, result.r, 1e-4f)
+        assertEquals(0.09231381f, result.g, 1e-4f)
+        assertEquals(0.050178207f, result.b, 1e-4f)
+    }
+
+    @Test
     fun `correct applies tone curve, then split-tone, then hsl shift, in that order`() {
         val input = Rgb(0.6f, 0.2f, 0.15f)
         val expected = NostalgicNegCorrection.hslShift(
