@@ -87,4 +87,104 @@ class NostalgicNegCorrectionTest {
         assertTrue(result.g in 0f..1f, "g = ${result.g} is outside [0, 1]")
         assertTrue(result.b in 0f..1f, "b = ${result.b} is outside [0, 1]")
     }
+
+    @Test
+    fun `rgb to hsl and back round-trips a mid gray`() {
+        val original = Rgb(0.5f, 0.5f, 0.5f)
+
+        val roundTripped = NostalgicNegCorrection.hslToRgb(NostalgicNegCorrection.rgbToHsl(original))
+
+        assertEquals(original.r, roundTripped.r, 1e-4f)
+        assertEquals(original.g, roundTripped.g, 1e-4f)
+        assertEquals(original.b, roundTripped.b, 1e-4f)
+    }
+
+    @Test
+    fun `rgb to hsl and back round-trips pure green`() {
+        val original = Rgb(0f, 1f, 0f)
+
+        val roundTripped = NostalgicNegCorrection.hslToRgb(NostalgicNegCorrection.rgbToHsl(original))
+
+        assertEquals(original.r, roundTripped.r, 1e-4f)
+        assertEquals(original.g, roundTripped.g, 1e-4f)
+        assertEquals(original.b, roundTripped.b, 1e-4f)
+    }
+
+    @Test
+    fun `hsl shift desaturates a green hue`() {
+        val green = Rgb(0.2f, 0.6f, 0.2f) // hue 120 degrees
+        val originalHsl = NostalgicNegCorrection.rgbToHsl(green)
+
+        val shiftedHsl = NostalgicNegCorrection.rgbToHsl(NostalgicNegCorrection.hslShift(green))
+
+        assertTrue(
+            shiftedHsl.saturation < originalHsl.saturation,
+            "expected saturation below ${originalHsl.saturation}, got ${shiftedHsl.saturation}",
+        )
+    }
+
+    @Test
+    fun `hsl shift desaturates a blue hue`() {
+        val blue = Rgb(0.2f, 0.2f, 0.6f) // hue 240 degrees
+        val originalHsl = NostalgicNegCorrection.rgbToHsl(blue)
+
+        val shiftedHsl = NostalgicNegCorrection.rgbToHsl(NostalgicNegCorrection.hslShift(blue))
+
+        assertTrue(
+            shiftedHsl.saturation < originalHsl.saturation,
+            "expected saturation below ${originalHsl.saturation}, got ${shiftedHsl.saturation}",
+        )
+    }
+
+    @Test
+    fun `hsl shift boosts saturation for a red-orange hue`() {
+        val red = Rgb(0.6f, 0.2f, 0.2f) // hue 0 degrees
+        val originalHsl = NostalgicNegCorrection.rgbToHsl(red)
+
+        val shiftedHsl = NostalgicNegCorrection.rgbToHsl(NostalgicNegCorrection.hslShift(red))
+
+        assertTrue(
+            shiftedHsl.saturation > originalHsl.saturation,
+            "expected saturation above ${originalHsl.saturation}, got ${shiftedHsl.saturation}",
+        )
+    }
+
+    @Test
+    fun `hsl shift leaves an unrelated hue's saturation alone`() {
+        val yellow = Rgb(0.6f, 0.6f, 0.2f) // hue 60 degrees, outside all targeted bands
+        val originalHsl = NostalgicNegCorrection.rgbToHsl(yellow)
+
+        val shiftedHsl = NostalgicNegCorrection.rgbToHsl(NostalgicNegCorrection.hslShift(yellow))
+
+        assertEquals(originalHsl.saturation, shiftedHsl.saturation, 1e-4f)
+    }
+
+    @Test
+    fun `hsl shift never produces saturation outside 0 to 1`() {
+        val vividRed = Rgb(1f, 0f, 0f)
+
+        val shiftedHsl = NostalgicNegCorrection.rgbToHsl(NostalgicNegCorrection.hslShift(vividRed))
+
+        assertTrue(shiftedHsl.saturation in 0f..1f, "saturation ${shiftedHsl.saturation} outside [0, 1]")
+    }
+
+    @Test
+    fun `correct applies tone curve, then split-tone, then hsl shift, in that order`() {
+        val input = Rgb(0.6f, 0.2f, 0.15f)
+        val expected = NostalgicNegCorrection.hslShift(
+            NostalgicNegCorrection.splitTone(
+                Rgb(
+                    NostalgicNegCorrection.toneCurve(input.r),
+                    NostalgicNegCorrection.toneCurve(input.g),
+                    NostalgicNegCorrection.toneCurve(input.b),
+                ),
+            ),
+        )
+
+        val result = NostalgicNegCorrection.correct(input)
+
+        assertEquals(expected.r, result.r, 1e-5f)
+        assertEquals(expected.g, result.g, 1e-5f)
+        assertEquals(expected.b, result.b, 1e-5f)
+    }
 }
