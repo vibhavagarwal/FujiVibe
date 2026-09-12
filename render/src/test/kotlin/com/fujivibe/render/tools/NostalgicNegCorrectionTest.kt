@@ -1,5 +1,6 @@
 package com.fujivibe.render.tools
 
+import com.fujivibe.render.Rgb
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -50,5 +51,40 @@ class NostalgicNegCorrectionTest {
             result < plainLift,
             "toneCurve($highlightInput) = $result should be pulled below the plain lift $plainLift",
         )
+    }
+
+    @Test
+    fun `split-tone pushes pure black toward the warm shadow offset`() {
+        val result = NostalgicNegCorrection.splitTone(Rgb(0f, 0f, 0f))
+
+        assertEquals((0f + NostalgicNegCorrection.SHADOW_TINT.r).coerceIn(0f, 1f), result.r, 1e-4f)
+        assertEquals((0f + NostalgicNegCorrection.SHADOW_TINT.g).coerceIn(0f, 1f), result.g, 1e-4f)
+        assertEquals((0f + NostalgicNegCorrection.SHADOW_TINT.b).coerceIn(0f, 1f), result.b, 1e-4f)
+    }
+
+    @Test
+    fun `split-tone pushes pure white toward the warm highlight offset`() {
+        val result = NostalgicNegCorrection.splitTone(Rgb(1f, 1f, 1f))
+
+        assertEquals((1f + NostalgicNegCorrection.HIGHLIGHT_TINT.r).coerceIn(0f, 1f), result.r, 1e-4f)
+        assertEquals((1f + NostalgicNegCorrection.HIGHLIGHT_TINT.g).coerceIn(0f, 1f), result.g, 1e-4f)
+        assertEquals((1f + NostalgicNegCorrection.HIGHLIGHT_TINT.b).coerceIn(0f, 1f), result.b, 1e-4f)
+    }
+
+    @Test
+    fun `both shadow and highlight tints are warm (positive red, negative blue)`() {
+        // Unlike Classic Neg (Pixel), where highlights fade toward a cool/neutral tint, the
+        // brief calls for an amber push across the whole tonal range — both ends stay warm.
+        assertTrue(NostalgicNegCorrection.SHADOW_TINT.r > 0f && NostalgicNegCorrection.SHADOW_TINT.b < 0f)
+        assertTrue(NostalgicNegCorrection.HIGHLIGHT_TINT.r > 0f && NostalgicNegCorrection.HIGHLIGHT_TINT.b < 0f)
+    }
+
+    @Test
+    fun `split-tone never pushes a component outside the 0 to 1 range`() {
+        val result = NostalgicNegCorrection.splitTone(Rgb(1f, 1f, 1f))
+
+        assertTrue(result.r in 0f..1f, "r = ${result.r} is outside [0, 1]")
+        assertTrue(result.g in 0f..1f, "g = ${result.g} is outside [0, 1]")
+        assertTrue(result.b in 0f..1f, "b = ${result.b} is outside [0, 1]")
     }
 }
