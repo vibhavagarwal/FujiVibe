@@ -29,6 +29,18 @@ tasks.register<JavaExec>("previewFilmSimulation") {
     workingDir = rootProject.projectDir
 }
 
+// ./gradlew :render:bakeNostalgicNegPixelLut
+// Regenerates derived-luts/Nostalgic Neg Pixel sRGB.cube from NostalgicNegCorrection's current
+// constants. A registered task, not the application block's mainClass, so both bake tools stay
+// independently runnable.
+tasks.register<JavaExec>("bakeNostalgicNegPixelLut") {
+    group = "application"
+    description = "Regenerates derived-luts/Nostalgic Neg Pixel sRGB.cube from current NostalgicNegCorrection constants."
+    mainClass.set("com.fujivibe.render.tools.BakeNostalgicNegPixelLut")
+    classpath = sourceSets.main.get().runtimeClasspath
+    workingDir = rootProject.projectDir
+}
+
 sourceSets {
     val proviaConversionLutsDir =
         rootProject.layout.projectDirectory.dir("raw-assets/abpy-fujifilm-camera-profiles/provia conversion luts")
