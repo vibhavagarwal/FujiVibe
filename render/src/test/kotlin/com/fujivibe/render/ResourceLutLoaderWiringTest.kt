@@ -9,8 +9,9 @@ import org.junit.jupiter.api.Test
 /**
  * Verifies the Film Simulation registry is wired to the right `.cube` resources: Nostalgic Neg.
  * to the pack's `provia conversion luts/` sRGB file specifically (per ADR 0004) — not the
- * linear-input `cube lut/` file of the same name — and Classic Neg. (Pixel) to FujiVibe's own
- * derived `derived-luts/` file (per ADR 0005/0006).
+ * linear-input `cube lut/` file of the same name — and Classic Neg. (Pixel) and Nostalgic Neg.
+ * (Pixel) each to their own FujiVibe-derived `derived-luts/` file (per ADR 0005/0006 and ADR 0007
+ * respectively).
  *
  * `raw-assets/` is gitignored (ADR 0003's licensing constraint), so its files won't exist on a
  * fresh clone until staged locally per the ticket. These tests skip rather than fail when the
@@ -30,14 +31,14 @@ class ResourceLutLoaderWiringTest {
     }
 
     @Test
-    fun `both registered Film Simulations load as real 32-point LUTs`() {
+    fun `all registered Film Simulations load as real 32-point LUTs`() {
         val loader = ResourceLutLoader()
 
-        val classicNegPixel = loader.load(FilmSimulation.CLASSIC_NEG_PIXEL)
-        val nostalgicNeg = loader.load(FilmSimulation.NOSTALGIC_NEG)
+        for (simulation in FilmSimulation.entries) {
+            val loaded = loader.load(simulation)
 
-        assertEquals(32, classicNegPixel.size)
-        assertEquals(32, nostalgicNeg.size)
+            assertEquals(32, loaded.size, "${simulation.name} did not load as a 32-point LUT")
+        }
     }
 
     @Test
