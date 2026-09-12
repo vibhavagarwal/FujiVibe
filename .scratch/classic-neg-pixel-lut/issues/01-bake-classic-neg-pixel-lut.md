@@ -38,7 +38,7 @@ two" framing, and a small `CONTEXT.md` edit to the "Film Simulation" definition.
 - [x] ADR 0005 written, recording the Pixel/Provia baseline-mismatch rationale and superseding ADR
       0004's "exactly two" framing
 - [x] `CONTEXT.md`'s "Film Simulation" definition updated to allow FujiVibe-derived variants
-- [ ] Visually verified on real Pixel photos against the original "Classic Neg." — not just that it
+- [x] Visually verified on real Pixel photos against the original "Classic Neg." — not just that it
       builds and loads, but that it actually reads better; correction constants adjusted as needed
 
 ## Comments
@@ -117,3 +117,8 @@ One on-device install so far (via `adb install -r`, right after the CLASSIC_NEG 
 highlight fix): confirmed the swipe cycle, and surfaced the "highlights still too bright" feedback
 that drove the 0.9 → 0.8 steepness rounds. Those two rounds plus grain were tuned via the preview
 tool only, not yet re-verified on device — that's this round's install.
+
+Second on-device install (0.8 steepness + grain): user confirmed swipe cycle, highlight brightness,
+and grain all read correctly. Ticket complete.
+
+**Status:** done.
