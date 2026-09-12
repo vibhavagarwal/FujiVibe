@@ -2,6 +2,7 @@ package com.fujivibe.render.tools
 
 import com.fujivibe.render.CubeLutParser
 import com.fujivibe.render.FilmSimulation
+import com.fujivibe.render.GrainRenderPipeline
 import com.fujivibe.render.LutRenderPipeline
 import com.fujivibe.render.PixelImage
 import com.fujivibe.render.RenderSelection
@@ -13,9 +14,10 @@ import javax.imageio.ImageIO
 /**
  * Renders a real photo through a [FilmSimulation] and writes an original-vs-rendered
  * side-by-side image, so a look can be tuned by eye without installing the app on a device.
- * Run via `./gradlew :render:previewFilmSimulation --args="<input> <output> [SIMULATION|ORIGINAL]"`
- * (defaults to `CLASSIC_NEG_PIXEL`). Reuses the app's own [LutRenderPipeline] rather than
- * reimplementing LUT application, so the preview matches what the app actually renders.
+ * Run via `./gradlew :render:previewFilmSimulation --args="<input> <output> [PANEL[,PANEL...]]"`
+ * (defaults to `ORIGINAL,CLASSIC_NEG_PIXEL`). Reuses the app's own [LutRenderPipeline] and
+ * [GrainRenderPipeline] rather than reimplementing either, so the preview matches what the app
+ * actually renders, grain included.
  */
 object PreviewFilmSimulation {
 
@@ -71,7 +73,7 @@ object PreviewFilmSimulation {
         if (panelName == "ORIGINAL") return original
         val filmSimulation = FilmSimulation.valueOf(panelName)
         val lutFile = File(LUT_DIRECTORIES.getValue(filmSimulation), filmSimulation.cubeResourceName)
-        val pipeline = LutRenderPipeline(lutLoader = { CubeLutParser.parse(lutFile.readText()) })
+        val pipeline = GrainRenderPipeline(LutRenderPipeline(lutLoader = { CubeLutParser.parse(lutFile.readText()) }))
         return runBlocking { pipeline.render(original, RenderSelection.Simulation(filmSimulation)) }
     }
 

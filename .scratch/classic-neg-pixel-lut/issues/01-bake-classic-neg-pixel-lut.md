@@ -93,4 +93,27 @@ that file stays. `ReviewCycle`, `ResourceLutLoaderWiringTest`, `ReviewCycleTest`
 `FilmSimulation.CLASSIC_NEG` all updated accordingly. `:render:test`, `:app:testDebugUnitTest`, and
 `:app:assembleDebug` all pass after the removal.
 
-Still pending: eventual on-device verification.
+On-device check (real Pixel phone, via adb) found the plain LUT-only version still reading too
+bright on white/near-white areas specifically (paper towel). Root cause: the tone curve's S-curve
+was a single shared steepness for both halves, so it boosted highlights above their input value by
+exactly as much as it pulled shadows below theirs — shadows read correctly, highlights didn't. Split
+`S_CURVE_STEEPNESS` into independent `SHADOW_CURVE_STEEPNESS` (kept at 1.9) and
+`HIGHLIGHT_CURVE_STEEPNESS` (identity at first, i.e. no boost), then dialed the latter down twice
+more per user feedback against real photos — 1.0 → 0.9 → 0.8 — each time pulling highlights
+further below a plain black-point lift rather than boosting them above it.
+
+Also added film grain, the one correction from the original spec that couldn't live in a static
+LUT (needs per-pixel randomness). Implemented as `NoiseGrid` (coarse, bilinear-sampled so cell
+edges blend into organic clumps instead of hard block edges, deterministic via a fixed seed) and
+`GrainRenderPipeline` (a `RenderPipeline` decorator wrapping `LutRenderPipeline`, applying the
+noise via a soft-light blend at 5% opacity — `LutRenderPipeline` itself untouched). Scoped to
+Classic Neg. (Pixel) only for now via a `GRAIN_ENABLED_SIMULATIONS` set, not a hardcoded check,
+since the user may want Nostalgic Neg. included later. Wired into both `ReviewScreen` (so Review
+and Export share the same grain, per the existing "same RenderPipeline call" invariant) and
+`PreviewFilmSimulation` (so grain is visible in the by-eye tuning workflow too, not just on
+device). Verified in isolation on a flat gray field — smooth, organic noise, no hard edges.
+
+One on-device install so far (via `adb install -r`, right after the CLASSIC_NEG removal + first
+highlight fix): confirmed the swipe cycle, and surfaced the "highlights still too bright" feedback
+that drove the 0.9 → 0.8 steepness rounds. Those two rounds plus grain were tuned via the preview
+tool only, not yet re-verified on device — that's this round's install.

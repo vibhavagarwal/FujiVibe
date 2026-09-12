@@ -31,6 +31,7 @@ import com.fujivibe.bitmap.toBitmap
 import com.fujivibe.bitmap.toPixelImage
 import com.fujivibe.capture.CaptureStore
 import com.fujivibe.gallery.GalleryWriter
+import com.fujivibe.render.GrainRenderPipeline
 import com.fujivibe.render.LutRenderPipeline
 import com.fujivibe.render.RenderPipeline
 import com.fujivibe.review.ReviewCycle
@@ -59,7 +60,7 @@ fun ReviewScreen(
     onExported: () -> Unit,
     galleryWriter: GalleryWriter,
     modifier: Modifier = Modifier,
-    renderPipeline: RenderPipeline = remember { LutRenderPipeline() },
+    renderPipeline: RenderPipeline = remember { GrainRenderPipeline(LutRenderPipeline()) },
 ) {
     val previewSource = remember { captureStore.loadPreview()?.toPixelImage() }
     var cycle by remember { mutableStateOf(ReviewCycle.start()) }

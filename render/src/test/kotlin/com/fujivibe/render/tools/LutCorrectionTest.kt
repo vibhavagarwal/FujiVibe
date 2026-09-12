@@ -50,6 +50,21 @@ class LutCorrectionTest {
     }
 
     @Test
+    fun `tone curve pulls highlights slightly below a plain black-point lift`() {
+        // Near-white input (e.g. a paper towel after the base LUT) should read a touch dimmer
+        // than a plain lift, not brightened above it the way the old symmetric curve did.
+        val highlightInput = 0.95f
+        val plainLift = LutCorrection.BLACK_POINT_LIFT + (1f - LutCorrection.BLACK_POINT_LIFT) * highlightInput
+
+        val result = LutCorrection.toneCurve(highlightInput)
+
+        assertTrue(
+            result < plainLift,
+            "toneCurve($highlightInput) = $result should be pulled below the plain lift $plainLift",
+        )
+    }
+
+    @Test
     fun `split-tone pushes pure black toward the cyan-green shadow offset`() {
         val result = LutCorrection.splitTone(Rgb(0f, 0f, 0f))
 

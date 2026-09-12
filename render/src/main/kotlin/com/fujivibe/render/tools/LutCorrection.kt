@@ -18,17 +18,28 @@ object LutCorrection {
     const val BLACK_POINT_LIFT = 0.04f
 
     /**
-     * S-curve steepness: `x^p / (x^p + (1-x)^p)`, symmetric about 0.5, fixed at both endpoints.
-     * `p > 1` compresses shadows below the input value and pushes highlights above it. Lowered
-     * from the original 2.2 (applying this per-channel, not on luma, adds saturation wherever a
-     * pixel's channels differ, which was fighting the reference's muted look) but raised back up
-     * from an intermediate 1.6, which overcorrected into reading noticeably too bright/flat.
+     * Shadow-side steepness of `x^p / (x^p + (1-x)^p)` (`x < 0.5`), symmetric about 0.5, fixed
+     * at both endpoints. `p > 1` compresses shadows below the input value. Lowered from the
+     * original 2.2 (applying this per-channel, not on luma, adds saturation wherever a pixel's
+     * channels differ, which was fighting the reference's muted look) but raised back up from
+     * an intermediate 1.6, which overcorrected into reading noticeably too bright/flat.
      */
-    const val S_CURVE_STEEPNESS = 1.9f
+    const val SHADOW_CURVE_STEEPNESS = 1.9f
+
+    /**
+     * Highlight-side steepness (`x >= 0.5`). `p = 1` is the identity (no boost, no cut); `p < 1`
+     * pulls values above 0.5 back down toward it. A shared single steepness (the original
+     * design) pushed highlights above the input value exactly as much as it pulled shadows
+     * below it, which read as true to the shadows but visibly over-brightened near-white areas
+     * (e.g. a paper towel) well past the original. `p = 1` alone fixed most of that; 0.9 trimmed
+     * more but still read too bright per user feedback against a real photo; dropped further.
+     */
+    const val HIGHLIGHT_CURVE_STEEPNESS = 0.8f
 
     /** Tone curve applied identically to each channel: S-curve contrast, then black-point lift. */
     fun toneCurve(x: Float): Float {
-        val curved = sCurve(x, S_CURVE_STEEPNESS)
+        val steepness = if (x < 0.5f) SHADOW_CURVE_STEEPNESS else HIGHLIGHT_CURVE_STEEPNESS
+        val curved = sCurve(x, steepness)
         return BLACK_POINT_LIFT + (1f - BLACK_POINT_LIFT) * curved
     }
 
