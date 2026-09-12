@@ -85,8 +85,7 @@ class GrainRenderPipeline(
         /** Fixed, not random-per-render: same photo always produces the same grain pattern. */
         const val GRAIN_SEED = 42L
 
-        /** Which Film Simulations get grain. Deliberately a set, not one hardcoded check — the
-         *  user may want Nostalgic Neg. included later. */
-        val GRAIN_ENABLED_SIMULATIONS = setOf(FilmSimulation.CLASSIC_NEG_PIXEL)
+        /** Which Film Simulations get grain. Deliberately a set, not one hardcoded check. */
+        val GRAIN_ENABLED_SIMULATIONS = setOf(FilmSimulation.CLASSIC_NEG_PIXEL, FilmSimulation.NOSTALGIC_NEG_PIXEL)
     }
 }

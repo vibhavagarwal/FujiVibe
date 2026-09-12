@@ -23,8 +23,9 @@ class ResourceLutLoaderWiringTest {
         val classLoader = javaClass.classLoader
         assumeTrue(
             classLoader.getResource(FilmSimulation.NOSTALGIC_NEG.cubeResourceName) != null &&
-                classLoader.getResource(FilmSimulation.CLASSIC_NEG_PIXEL.cubeResourceName) != null,
-            "raw-assets/ and derived-luts/ .cube files aren't staged locally (see ADR 0003/0005) — skipping",
+                classLoader.getResource(FilmSimulation.CLASSIC_NEG_PIXEL.cubeResourceName) != null &&
+                classLoader.getResource(FilmSimulation.NOSTALGIC_NEG_PIXEL.cubeResourceName) != null,
+            "raw-assets/ and derived-luts/ .cube files aren't staged locally (see ADR 0003/0005/0007) — skipping",
         )
     }
 
@@ -58,6 +59,23 @@ class ResourceLutLoaderWiringTest {
         // Same sample point, two different real files: results must differ, otherwise both
         // simulations are silently loading the same underlying LUT.
         assertNotEquals(classicNegPixel.sample(0.5f, 0.2f, 0.8f), nostalgicNeg.sample(0.5f, 0.2f, 0.8f))
+    }
+
+    @Test
+    fun `Nostalgic Neg Pixel loads as a real 32-point LUT`() {
+        val loaded = ResourceLutLoader().load(FilmSimulation.NOSTALGIC_NEG_PIXEL)
+
+        assertEquals(32, loaded.size)
+    }
+
+    @Test
+    fun `Nostalgic Neg Pixel and plain Nostalgic Neg are distinct LUTs`() {
+        val loader = ResourceLutLoader()
+
+        val nostalgicNegPixel = loader.load(FilmSimulation.NOSTALGIC_NEG_PIXEL)
+        val nostalgicNeg = loader.load(FilmSimulation.NOSTALGIC_NEG)
+
+        assertNotEquals(nostalgicNegPixel.sample(0.5f, 0.2f, 0.8f), nostalgicNeg.sample(0.5f, 0.2f, 0.8f))
     }
 
     private fun assertRgbEquals(expected: Rgb, actual: Rgb, delta: Float = 1e-4f) {

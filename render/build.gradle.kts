@@ -59,6 +59,7 @@ sourceSets {
         resources.include(
             "Provia to Nostalgic Neg sRGB.cube",
             "Classic Neg Pixel sRGB.cube",
+            "Nostalgic Neg Pixel sRGB.cube",
         )
     }
 }

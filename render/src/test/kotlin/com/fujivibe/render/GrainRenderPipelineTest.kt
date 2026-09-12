@@ -48,6 +48,17 @@ class GrainRenderPipelineTest {
     }
 
     @Test
+    fun `Nostalgic Neg Pixel gets grain applied, changing at least one pixel`() = runTest {
+        val source = solidImage(20, 20, 0xFF808080.toInt())
+        val inner = PassthroughPipeline
+        val pipeline = GrainRenderPipeline(inner)
+
+        val result = pipeline.render(source, RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG_PIXEL))
+
+        assertNotEquals(source, result)
+    }
+
+    @Test
     fun `grain preserves each pixel's alpha channel exactly`() = runTest {
         val source = solidImage(20, 20, 0x80808080.toInt())
         val inner = PassthroughPipeline
