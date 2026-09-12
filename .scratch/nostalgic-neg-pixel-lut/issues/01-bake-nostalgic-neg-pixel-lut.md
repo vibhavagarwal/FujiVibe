@@ -14,30 +14,31 @@ start via `GrainRenderPipeline`'s existing `GRAIN_ENABLED_SIMULATIONS` set. No c
 
 **Blocked by:** none
 
-**Status:** not started.
+**Status:** implemented, pending visual tuning against real Pixel photos and on-device
+verification.
 
-- [ ] `NostalgicNegCorrection.kt` implements tone-curve, split-tone, and HSL-shift as pure
+- [x] `NostalgicNegCorrection.kt` implements tone-curve, split-tone, and HSL-shift as pure
       `Rgb -> Rgb` functions, composed in that order, with tunable constants declared at the top of
       the file — independent of `LutCorrection`'s constants
-- [ ] `BakeNostalgicNegPixelLut.kt`'s `main()` reads the source conversion LUT, applies the
+- [x] `BakeNostalgicNegPixelLut.kt`'s `main()` reads the source conversion LUT, applies the
       correction to every entry, and writes `derived-luts/Nostalgic Neg Pixel sRGB.cube` (reusing
       the existing `CubeLutWriter`)
-- [ ] `:render`'s `build.gradle.kts` registers a new `bakeNostalgicNegPixelLut` `JavaExec` task
+- [x] `:render`'s `build.gradle.kts` registers a new `bakeNostalgicNegPixelLut` `JavaExec` task
       (mirroring `previewFilmSimulation`'s shape), so re-baking is
       `./gradlew :render:bakeNostalgicNegPixelLut`
-- [ ] `derived-luts/Nostalgic Neg Pixel sRGB.cube` is committed and wired into `:render`'s test
+- [x] `derived-luts/Nostalgic Neg Pixel sRGB.cube` is committed and wired into `:render`'s test
       resources, mirroring the existing entries
-- [ ] `FilmSimulation.NOSTALGIC_NEG_PIXEL` exists, ordered directly after `NOSTALGIC_NEG`
-- [ ] `PreviewFilmSimulation.kt`'s `LUT_DIRECTORIES` map includes `NOSTALGIC_NEG_PIXEL -> derived-luts/`
-- [ ] Review's swipe cycle includes "Nostalgic Neg. (Pixel)" with zero `ReviewCycle`/UI code changes
+- [x] `FilmSimulation.NOSTALGIC_NEG_PIXEL` exists, ordered directly after `NOSTALGIC_NEG`
+- [x] `PreviewFilmSimulation.kt`'s `LUT_DIRECTORIES` map includes `NOSTALGIC_NEG_PIXEL -> derived-luts/`
+- [x] Review's swipe cycle includes "Nostalgic Neg. (Pixel)" with zero `ReviewCycle`/UI code changes
       (`ReviewCycleTest` updated for the new 5-entry order)
-- [ ] `GrainRenderPipeline`'s `GRAIN_ENABLED_SIMULATIONS` set includes `NOSTALGIC_NEG_PIXEL`
+- [x] `GrainRenderPipeline`'s `GRAIN_ENABLED_SIMULATIONS` set includes `NOSTALGIC_NEG_PIXEL`
       (`GrainRenderPipelineTest` updated)
-- [ ] Unit tests cover the correction math (warm-tinted black lift, curve monotonicity, highlight
+- [x] Unit tests cover the correction math (warm-tinted black lift, curve monotonicity, highlight
       compression direction, warm split-tone direction on both shadows and highlights, blue/green
       desaturation direction, red/orange saturation retained or boosted)
-- [ ] A `ResourceLutLoaderWiringTest`-style test confirms `NOSTALGIC_NEG_PIXEL` resolves and loads
-- [ ] ADR 0007 written, recording the same-pattern rationale as ADR 0005
+- [x] A `ResourceLutLoaderWiringTest`-style test confirms `NOSTALGIC_NEG_PIXEL` resolves and loads
+- [x] ADR 0007 written, recording the same-pattern rationale as ADR 0005
 - [ ] Visually verified on real Pixel photos against the user's reference image — not just that it
       builds and loads, but that it actually reads as intended; correction constants adjusted as
       needed via `./gradlew :render:previewFilmSimulation --args="<input> <output>
@@ -46,4 +47,8 @@ start via `GrainRenderPipeline`'s existing `GRAIN_ENABLED_SIMULATIONS` set. No c
 
 ## Comments
 
-(none yet)
+Tasks 1-6 of the implementation plan (`docs/superpowers/plans/2026-09-12-nostalgic-neg-pixel-lut.md`)
+are complete, each independently reviewed with no Critical/Important findings. A final
+whole-branch review found no blocking issues, only a small cleanup pass (stale ticket status, a
+tautological test, and two stale doc/test strings) addressed as a follow-up commit. Visual tuning
+against real Pixel photos and on-device verification remain the two outstanding steps.
