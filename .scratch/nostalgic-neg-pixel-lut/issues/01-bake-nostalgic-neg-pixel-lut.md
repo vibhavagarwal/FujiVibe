@@ -14,8 +14,8 @@ start via `GrainRenderPipeline`'s existing `GRAIN_ENABLED_SIMULATIONS` set. No c
 
 **Blocked by:** none
 
-**Status:** implemented and visually tuned against real Pixel photos (two rounds); original,
-unmodified Nostalgic Neg. removed from the registry per ADR 0008. Pending on-device verification.
+**Status:** done. Implemented, visually tuned against real Pixel photos (two rounds), original
+unmodified Nostalgic Neg. removed from the registry per ADR 0008, and confirmed on-device.
 
 - [x] `NostalgicNegCorrection.kt` implements tone-curve, split-tone, and HSL-shift as pure
       `Rgb -> Rgb` functions, composed in that order, with tunable constants declared at the top of
@@ -43,7 +43,7 @@ unmodified Nostalgic Neg. removed from the registry per ADR 0008. Pending on-dev
       builds and loads, but that it actually reads as intended; correction constants adjusted as
       needed via `./gradlew :render:previewFilmSimulation --args="<input> <output>
       ORIGINAL,NOSTALGIC_NEG_PIXEL"`
-- [ ] On-device verification (adb install, real Pixel phone)
+- [x] On-device verification (adb install, real Pixel phone)
 - [x] Original, unmodified `NOSTALGIC_NEG` removed from the registry once the Pixel variant was
       confirmed (see ADR 0008) — registry is now exactly `CLASSIC_NEG_PIXEL`, `NOSTALGIC_NEG_PIXEL`
 
@@ -77,4 +77,7 @@ Film Simulation is grain-enabled, since removing `NOSTALGIC_NEG` left no real re
 outside that set to test the exclusion branch against. `:render:test`, `:app:testDebugUnitTest`,
 and `:app:assembleDebug` all pass after the removal.
 
-On-device verification remains the one outstanding step.
+On-device install (adb, real Pixel phone) confirmed: swipe cycle now shows only Original → Classic
+Neg. (Pixel) → Nostalgic Neg. (Pixel), and the Nostalgic Neg. (Pixel) look (warm shadows/lower
+midtones, clean highlights, muted-not-muddy greens/blues, rich reds, grain) reads correctly. Ticket
+complete.
