@@ -24,17 +24,13 @@ class ReviewCycleTest {
         assertEquals("Classic Neg. (Pixel)", afterFirstNext.label)
 
         val afterSecondNext = afterFirstNext.next()
-        assertEquals(RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG), afterSecondNext.current)
-        assertEquals("Nostalgic Neg.", afterSecondNext.label)
-
-        val afterThirdNext = afterSecondNext.next()
-        assertEquals(RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG_PIXEL), afterThirdNext.current)
-        assertEquals("Nostalgic Neg. (Pixel)", afterThirdNext.label)
+        assertEquals(RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG_PIXEL), afterSecondNext.current)
+        assertEquals("Nostalgic Neg. (Pixel)", afterSecondNext.label)
     }
 
     @Test
     fun `next wraps from the last Film Simulation back to Original`() {
-        val lastEntry = ReviewCycle.start().next().next().next()
+        val lastEntry = ReviewCycle.start().next().next()
 
         val wrapped = lastEntry.next()
 

@@ -47,17 +47,18 @@ sourceSets {
     val derivedLutsDir = rootProject.layout.projectDirectory.dir("derived-luts")
 
     // Test-only: lets unit tests load the real .cube files to verify the Film Simulation
-    // registry is wired to the correct sRGB variants. The `provia conversion luts/` file is
-    // gitignored (ADR 0003's licensing constraint); the derived Classic Neg Pixel file is
-    // FujiVibe's own committed work (see ADR 0005) and always present. (The original, unmodified
-    // Classic Neg. file is no longer part of the registry — see ADR 0006 — but the folder it
-    // lives in is still wired here since BakeClassicNegPixelLut reads it directly as its source.)
+    // registry is wired to the correct sRGB variants. Both derived files are FujiVibe's own
+    // committed work (see ADR 0005/0007) and always present. Neither original, unmodified stock
+    // conversion LUT (Classic Neg., Nostalgic Neg.) is in this include list — both were removed
+    // from the registry (ADR 0006, ADR 0008), so no test loads them via classpath resource
+    // anymore. The `provia conversion luts/` directory is still wired as a resources srcDir
+    // (rather than removed) since `BakeClassicNegPixelLut` and `BakeNostalgicNegPixelLut` both
+    // read their source files directly from it by path, independent of this include list.
     // Production bundling of these files into the app is out of scope for this module.
     test {
         resources.srcDir(proviaConversionLutsDir)
         resources.srcDir(derivedLutsDir)
         resources.include(
-            "Provia to Nostalgic Neg sRGB.cube",
             "Classic Neg Pixel sRGB.cube",
             "Nostalgic Neg Pixel sRGB.cube",
         )

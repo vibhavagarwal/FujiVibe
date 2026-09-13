@@ -26,14 +26,14 @@ class GrainRenderPipelineTest {
     }
 
     @Test
-    fun `a Film Simulation not in the grain-enabled set passes through untouched`() = runTest {
-        val source = solidImage(20, 20, 0xFF808080.toInt())
-        val inner = PassthroughPipeline
-        val pipeline = GrainRenderPipeline(inner)
-
-        val result = pipeline.render(source, RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG))
-
-        assertEquals(source, result)
+    fun `every currently registered Film Simulation is grain-enabled`() {
+        // Both original, unmodified stock-LUT entries (Classic Neg., Nostalgic Neg.) have been
+        // removed from the registry (ADR 0006, ADR 0008), so there's no longer a real registry
+        // member outside GRAIN_ENABLED_SIMULATIONS to exercise the "passes through untouched"
+        // branch against. This test documents that fact and will fail — a deliberate prompt to
+        // decide on grain, not an oversight — the moment a future Film Simulation is added
+        // without an explicit grain decision.
+        assertEquals(FilmSimulation.entries.toSet(), GrainRenderPipeline.GRAIN_ENABLED_SIMULATIONS)
     }
 
     @Test

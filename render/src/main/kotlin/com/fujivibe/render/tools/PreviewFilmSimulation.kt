@@ -22,7 +22,6 @@ import javax.imageio.ImageIO
 object PreviewFilmSimulation {
 
     private val LUT_DIRECTORIES = mapOf(
-        FilmSimulation.NOSTALGIC_NEG to File("raw-assets/abpy-fujifilm-camera-profiles/provia conversion luts"),
         FilmSimulation.CLASSIC_NEG_PIXEL to File("derived-luts"),
         FilmSimulation.NOSTALGIC_NEG_PIXEL to File("derived-luts"),
     )
