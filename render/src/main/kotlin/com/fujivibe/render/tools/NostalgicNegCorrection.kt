@@ -5,11 +5,19 @@ import com.fujivibe.render.Rgb
 /**
  * Pointwise Nostalgic Neg. (Pixel) correction: tone curve, then split-tone, then HSL shift.
  * Deliberately independent of [LutCorrection] (own constants, own copy of the HSL math) — the
- * target look here is a warm push (amber white balance, warm-tinted lifted blacks, compressed
- * highlights, cool-hue desaturation with reds/oranges protected), essentially inverted from
- * Classic Neg. (Pixel)'s cool/muted direction, so independent tuning knobs matter the same way
- * they did for that ticket. See `.scratch/nostalgic-neg-pixel-lut/spec.md`. Every constant here
- * is a starting guess — re-run `BakeNostalgicNegPixelLut` after editing one.
+ * target look here is a warm push confined to shadows/lower-midtones (not a global white-balance
+ * shift), compressed highlights, and cool-hue desaturation with reds/oranges protected. See
+ * `.scratch/nostalgic-neg-pixel-lut/spec.md`. Every constant here is a starting guess — re-run
+ * `BakeNostalgicNegPixelLut` after editing one.
+ *
+ * Retuned after a first round of user feedback against real photos: the initial pass applied
+ * warmth uniformly across the whole tonal range (including highlights), which read as "a blanket
+ * amber filter" rather than a 1970s-style graded look — skin tones went excessively orange,
+ * foliage turned to "yellow mud," and white paper/plastic washed out to sepia. The fix: confine
+ * warmth to shadows/lower-midtones ([SPLIT_TONE_SHADOW_REACH] dropped so it fades out well before
+ * the white point), zero out the highlight tint entirely, moderate the green/blue desaturation
+ * so it reads as "slightly muted" rather than muddying, and boost red/orange retention so reds
+ * stay deliberately rich against the (now more modestly) muted background.
  */
 object NostalgicNegCorrection {
 
@@ -51,23 +59,29 @@ object NostalgicNegCorrection {
     val SHADOW_TINT = Rgb(12f / 255f, 2f / 255f, -8f / 255f)
 
     /**
-     * Warm cream/amber highlight offset, 8-bit +10/+6/-10 — unlike Classic Neg. (Pixel), this
-     * does NOT fade toward neutral/cool at the highlight end: the brief wants "creamy, warm,
-     * slightly vintage" whites, not stark digital white.
+     * Neutral highlight offset — retuned to zero after user feedback against real photos: the
+     * first pass's warm highlight tint (+10/+6/-10) read as the whole white point being "washed
+     * in sepia" (paper, clear plastic) rather than a subtle vintage cast. Real 1970s-style warm
+     * casts sit in the shadows/lower-midtones; the white point should stay reasonably clean.
      */
-    val HIGHLIGHT_TINT = Rgb(10f / 255f, 6f / 255f, -10f / 255f)
+    val HIGHLIGHT_TINT = Rgb(0f, 0f, 0f)
 
     /**
-     * How far [SHADOW_TINT]'s warm cast reaches up the tonal scale before [HIGHLIGHT_TINT]
-     * takes over: shadow weight is `1 - luma^SPLIT_TONE_SHADOW_REACH`. Lower than Classic Neg.
-     * (Pixel)'s 3f since both tints are warm here — there's no need for the shadow tint to
-     * dominate all the way into highlights the way a cool-vs-neutral design would require.
+     * How far [SHADOW_TINT]'s warm cast reaches up the tonal scale before fading to nothing:
+     * shadow weight is `1 - luma^SPLIT_TONE_SHADOW_REACH`. Dropped from 2f to 0.6f after user
+     * feedback: at 2f, shadow weight was still ~0.75 at 50%-gray luma, pushing skin tones
+     * (roughly midtone) and midtone foliage into an "excessively orange" / "yellow mud" cast —
+     * a global-white-balance-shift symptom rather than the intended "amber shadows and lower
+     * midtones only" look. At 0.6f, shadow weight drops to ~0.34 by 50% gray and ~0.06 by 90%
+     * luma (near-white paper), concentrating warmth in true shadows/lower-midtones and leaving
+     * highlights and the white point clean (reinforced by [HIGHLIGHT_TINT] now being neutral).
      */
-    const val SPLIT_TONE_SHADOW_REACH = 2f
+    const val SPLIT_TONE_SHADOW_REACH = 0.6f
 
     /**
-     * Blends [SHADOW_TINT] into shadows and [HIGHLIGHT_TINT] into highlights. Clamped to
-     * `[0, 1]`: an unclamped >1 channel here would otherwise reach [rgbToHsl] out of its
+     * Blends [SHADOW_TINT] into shadows/lower-midtones, fading to [HIGHLIGHT_TINT] (neutral, a
+     * no-op) by the highlights — so only the low end of the tonal range picks up warmth. Clamped
+     * to `[0, 1]`: an unclamped >1 channel here would otherwise reach [rgbToHsl] out of its
      * documented domain (see the equivalent bug fixed in `LutCorrection.splitTone`).
      */
     fun splitTone(rgb: Rgb): Rgb {
@@ -121,23 +135,31 @@ object NostalgicNegCorrection {
         return Rgb(r1 + m, g1 + m, b1 + m)
     }
 
-    /** Greens desaturated — the brief calls for "pulling vibrancy out of blues and greens." */
+    /**
+     * Greens desaturated — the brief calls for "pulling vibrancy out of blues and greens."
+     * Reduction cut from 0.45 to 0.28 after user feedback that combined with the (now-fixed)
+     * over-reaching shadow tint, foliage was reading as "uniform yellow mud" rather than
+     * "slightly muted" — greens should stay recognizably green, just less vivid.
+     */
     const val GREENS_TARGET_HUE = 120f
     const val GREENS_WIDTH = 45f
-    const val GREENS_SAT_REDUCTION = 0.45f
+    const val GREENS_SAT_REDUCTION = 0.28f
 
-    /** Blues/cyans desaturated, same reasoning as greens. */
+    /** Blues/cyans desaturated, same reasoning and same reduction cut as greens. */
     const val BLUES_TARGET_HUE = 225f
     const val BLUES_WIDTH = 55f
-    const val BLUES_SAT_REDUCTION = 0.45f
+    const val BLUES_SAT_REDUCTION = 0.28f
 
     /**
      * Reds/oranges keep full saturation or gain a little — "elements like the red logo
-     * maintain a rich, warm focus against the faded background."
+     * maintain a rich, warm focus against the faded background." Boost raised from 0.10 to
+     * 0.18 after user feedback asking reds to "retain their deep saturation" more assertively,
+     * so they read as deliberately rich against the now-more-modestly-muted background rather
+     * than blending into a uniformly warm cast.
      */
     const val REDS_ORANGES_TARGET_HUE = 15f
     const val REDS_ORANGES_WIDTH = 35f
-    const val REDS_ORANGES_SAT_BOOST = 0.10f
+    const val REDS_ORANGES_SAT_BOOST = 0.18f
 
     /** `1` at `target`, falling linearly to `0` at `width` degrees away (shortest way around). */
     private fun angularWeight(hueDegrees: Float, target: Float, width: Float): Float {

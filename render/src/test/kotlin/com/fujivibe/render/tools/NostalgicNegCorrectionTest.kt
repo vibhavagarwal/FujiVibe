@@ -63,7 +63,7 @@ class NostalgicNegCorrectionTest {
     }
 
     @Test
-    fun `split-tone pushes pure white toward the warm highlight offset`() {
+    fun `split-tone leaves pure white at the (neutral) highlight offset`() {
         val result = NostalgicNegCorrection.splitTone(Rgb(1f, 1f, 1f))
 
         assertEquals((1f + NostalgicNegCorrection.HIGHLIGHT_TINT.r).coerceIn(0f, 1f), result.r, 1e-4f)
@@ -72,11 +72,12 @@ class NostalgicNegCorrectionTest {
     }
 
     @Test
-    fun `both shadow and highlight tints are warm (positive red, negative blue)`() {
-        // Unlike Classic Neg (Pixel), where highlights fade toward a cool/neutral tint, the
-        // brief calls for an amber push across the whole tonal range — both ends stay warm.
+    fun `shadow tint is warm, highlight tint is neutral, so only shadows and lower-midtones warm up`() {
+        // Retuned after user feedback: a warm highlight tint made the whole white point read as
+        // "washed in sepia." Warmth now lives only in the shadow tint, fading to a neutral (zero)
+        // highlight tint so the white point stays clean.
         assertTrue(NostalgicNegCorrection.SHADOW_TINT.r > 0f && NostalgicNegCorrection.SHADOW_TINT.b < 0f)
-        assertTrue(NostalgicNegCorrection.HIGHLIGHT_TINT.r > 0f && NostalgicNegCorrection.HIGHLIGHT_TINT.b < 0f)
+        assertEquals(Rgb(0f, 0f, 0f), NostalgicNegCorrection.HIGHLIGHT_TINT)
     }
 
     @Test
@@ -171,16 +172,18 @@ class NostalgicNegCorrectionTest {
     @Test
     fun `correct produces the expected warm, milky near-black for the source LUT's darkest grid entry`() {
         // Input is "Provia to Nostalgic Neg sRGB.cube"'s actual first grid entry (r=g=b=0 corner).
-        // Expected output independently verified by hand against the committed constants during
-        // final review — also matches derived-luts/Nostalgic Neg Pixel sRGB.cube's first data row
-        // exactly, confirming the committed .cube is in sync with these constants.
+        // Expected output taken directly from a fresh bake of derived-luts/Nostalgic Neg Pixel
+        // sRGB.cube's first data row, confirming the committed .cube is in sync with these
+        // constants. Retuned after the SPLIT_TONE_SHADOW_REACH/HIGHLIGHT_TINT changes above —
+        // still reads warm (r > g > b) but less strongly than the pre-retune values, since
+        // shadow-tint weight at this near-black luma dropped slightly under the new REACH.
         val input = Rgb(0.0159f, 0.01602f, 0.01456f)
 
         val result = NostalgicNegCorrection.correct(input)
 
-        assertEquals(0.13351095f, result.r, 1e-4f)
-        assertEquals(0.09231381f, result.g, 1e-4f)
-        assertEquals(0.050178207f, result.b, 1e-4f)
+        assertEquals(0.12378254f, result.r, 1e-4f)
+        assertEquals(0.09042744f, result.g, 1e-4f)
+        assertEquals(0.056461908f, result.b, 1e-4f)
     }
 
     @Test
