@@ -28,8 +28,8 @@ class ReviewCycleTest {
         assertEquals("Nostalgic Neg. (Pixel)", afterSecondNext.label)
 
         val afterThirdNext = afterSecondNext.next()
-        assertEquals(RenderSelection.Simulation(FilmSimulation.KODACHROME_64), afterThirdNext.current)
-        assertEquals("Kodachrome 64", afterThirdNext.label)
+        assertEquals(RenderSelection.Simulation(FilmSimulation.KODA64_PIXEL), afterThirdNext.current)
+        assertEquals("Koda64Pixel", afterThirdNext.label)
     }
 
     @Test
@@ -47,7 +47,7 @@ class ReviewCycleTest {
 
         val wrapped = cycle.previous()
 
-        assertEquals(RenderSelection.Simulation(FilmSimulation.KODACHROME_64), wrapped.current)
+        assertEquals(RenderSelection.Simulation(FilmSimulation.KODA64_PIXEL), wrapped.current)
     }
 
     @Test

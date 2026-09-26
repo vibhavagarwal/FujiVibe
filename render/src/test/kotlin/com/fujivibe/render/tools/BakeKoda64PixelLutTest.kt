@@ -5,7 +5,7 @@ import com.fujivibe.render.Rgb
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class BakeKodachrome64LutTest {
+class BakeKoda64PixelLutTest {
 
     private fun identityLut(size: Int): Cube3DLut {
         val table = FloatArray(size * size * size * 3)
@@ -21,19 +21,19 @@ class BakeKodachrome64LutTest {
 
     @Test
     fun `srgbToLinear matches the sRGB transfer function at known points`() {
-        assertEquals(0f, BakeKodachrome64Lut.srgbToLinear(0f), 1e-6f)
-        assertEquals(1f, BakeKodachrome64Lut.srgbToLinear(1f), 1e-6f)
-        assertEquals(0.2140f, BakeKodachrome64Lut.srgbToLinear(0.5f), 1e-3f)
+        assertEquals(0f, BakeKoda64PixelLut.srgbToLinear(0f), 1e-6f)
+        assertEquals(1f, BakeKoda64PixelLut.srgbToLinear(1f), 1e-6f)
+        assertEquals(0.2140f, BakeKoda64PixelLut.srgbToLinear(0.5f), 1e-3f)
     }
 
     @Test
     fun `with full tone kept, baking linearizes each grid coordinate before sampling, then corrects`() {
         // Identity source: sampling at the linearized coordinate returns it unchanged, so a
         // mid-grid entry (encoded 0.5) must equal correct() of the linear value, not of 0.5.
-        val baked = BakeKodachrome64Lut.bake(identityLut(3), toneKeep = 1f)
+        val baked = BakeKoda64PixelLut.bake(identityLut(3), toneKeep = 1f)
 
-        val linearMid = BakeKodachrome64Lut.srgbToLinear(0.5f)
-        val expected = KodachromeCorrection.correct(Rgb(linearMid, linearMid, linearMid))
+        val linearMid = BakeKoda64PixelLut.srgbToLinear(0.5f)
+        val expected = Koda64PixelCorrection.correct(Rgb(linearMid, linearMid, linearMid))
         val actual = baked.valueAt(1, 1, 1)
         assertEquals(expected.r, actual.r, 1e-5f)
         assertEquals(expected.g, actual.g, 1e-5f)
@@ -43,12 +43,12 @@ class BakeKodachrome64LutTest {
     @Test
     fun `with no tone kept, the source LUT's own tone curve is divided back out`() {
         // Identity-on-linear source has neutral-axis tone T(e) = linear(e); neutralizing must
-        // return each grid point to its own encoded value, so only KodachromeCorrection remains.
-        val baked = BakeKodachrome64Lut.bake(identityLut(5), toneKeep = 0f)
+        // return each grid point to its own encoded value, so only Koda64PixelCorrection remains.
+        val baked = BakeKoda64PixelLut.bake(identityLut(5), toneKeep = 0f)
 
         for (i in 0 until 5) {
             val encoded = i / 4f
-            val expected = KodachromeCorrection.correct(Rgb(encoded, encoded, encoded))
+            val expected = Koda64PixelCorrection.correct(Rgb(encoded, encoded, encoded))
             val actual = baked.valueAt(i, i, i)
             assertEquals(expected.r, actual.r, 2e-3f)
             assertEquals(expected.g, actual.g, 2e-3f)

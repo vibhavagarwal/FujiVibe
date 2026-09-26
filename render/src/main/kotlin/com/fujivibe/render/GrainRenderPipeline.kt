@@ -89,7 +89,7 @@ class GrainRenderPipeline(
         val GRAIN_ENABLED_SIMULATIONS = setOf(
             FilmSimulation.CLASSIC_NEG_PIXEL,
             FilmSimulation.NOSTALGIC_NEG_PIXEL,
-            FilmSimulation.KODACHROME_64,
+            FilmSimulation.KODA64_PIXEL,
         )
     }
 }

@@ -8,9 +8,9 @@ import com.fujivibe.render.Rgb
  * "Kodachrome 64" recipe (Classic Chrome base; WB Daylight +2 Red/-5 Blue; Shadow +0.5; DR200;
  * Color +2; Color Chrome Effect Strong) — see `.scratch/kodachrome-64/spec.md`. The recipe's
  * Clarity +3 is local contrast, which a per-pixel color LUT can't express, so it's omitted.
- * Every constant is a starting guess — re-run `BakeKodachrome64Lut` after editing one.
+ * Every constant is a starting guess — re-run `BakeKoda64PixelLut` after editing one.
  */
-object KodachromeCorrection {
+object Koda64PixelCorrection {
 
     /** WB shift +2 Red / -5 Blue: a modest warm push, as per-channel gains. */
     const val WB_RED_GAIN = 1.03f

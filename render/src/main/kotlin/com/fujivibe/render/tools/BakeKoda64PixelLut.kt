@@ -6,19 +6,19 @@ import com.fujivibe.render.Rgb
 import java.io.File
 
 /**
- * Derives `derived-luts/Kodachrome 64 sRGB.cube` from the pack's `classic chrome_sRGB.cube`.
+ * Derives `derived-luts/Koda64Pixel sRGB.cube` from the pack's `classic chrome_sRGB.cube`.
  * That LUT expects scene-linear input (ADR 0004), but the app feeds it gamma-encoded JPEG pixels,
  * so each grid point's sRGB-encoded coordinate is linearized here, offline, before sampling the
  * source; the LUT's own built-in tone curve is then largely divided back out (see
- * [CLASSIC_CHROME_TONE_KEEP]) and the result run through [KodachromeCorrection.correct]. The
- * runtime pipeline stays a plain single-LUT lookup. Run via `./gradlew :render:bakeKodachrome64Lut` after editing any of
- * [KodachromeCorrection]'s constants.
+ * [CLASSIC_CHROME_TONE_KEEP]) and the result run through [Koda64PixelCorrection.correct]. The
+ * runtime pipeline stays a plain single-LUT lookup. Run via `./gradlew :render:bakeKoda64PixelLut` after editing any of
+ * [Koda64PixelCorrection]'s constants.
  */
-object BakeKodachrome64Lut {
+object BakeKoda64PixelLut {
 
     private val SOURCE_LUT =
         File("raw-assets/abpy-fujifilm-camera-profiles/cube lut/classic chrome_sRGB.cube")
-    private val OUTPUT_LUT = File("derived-luts/Kodachrome 64 sRGB.cube")
+    private val OUTPUT_LUT = File("derived-luts/Koda64Pixel sRGB.cube")
 
     /**
      * The source LUT bakes in a strong raw-to-display tone curve (its neutral axis maps linear
@@ -90,9 +90,9 @@ object BakeKodachrome64Lut {
                         lerp(neutralAxis.neutralize(raw.g), raw.g, toneKeep),
                         lerp(neutralAxis.neutralize(raw.b), raw.b, toneKeep),
                     )
-                    val corrected = KodachromeCorrection.lightenSkin(
+                    val corrected = Koda64PixelCorrection.lightenSkin(
                         input = Rgb(r / maxIndex, g / maxIndex, b / maxIndex),
-                        corrected = KodachromeCorrection.correct(blended),
+                        corrected = Koda64PixelCorrection.correct(blended),
                     )
                     table[i++] = corrected.r
                     table[i++] = corrected.g

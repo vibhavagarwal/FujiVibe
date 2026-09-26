@@ -41,12 +41,12 @@ tasks.register<JavaExec>("bakeNostalgicNegPixelLut") {
     workingDir = rootProject.projectDir
 }
 
-// ./gradlew :render:bakeKodachrome64Lut
-// Regenerates derived-luts/Kodachrome 64 sRGB.cube from KodachromeCorrection's current constants.
-tasks.register<JavaExec>("bakeKodachrome64Lut") {
+// ./gradlew :render:bakeKoda64PixelLut
+// Regenerates derived-luts/Koda64Pixel sRGB.cube from Koda64PixelCorrection's current constants.
+tasks.register<JavaExec>("bakeKoda64PixelLut") {
     group = "application"
-    description = "Regenerates derived-luts/Kodachrome 64 sRGB.cube from current KodachromeCorrection constants."
-    mainClass.set("com.fujivibe.render.tools.BakeKodachrome64Lut")
+    description = "Regenerates derived-luts/Koda64Pixel sRGB.cube from current Koda64PixelCorrection constants."
+    mainClass.set("com.fujivibe.render.tools.BakeKoda64PixelLut")
     classpath = sourceSets.main.get().runtimeClasspath
     workingDir = rootProject.projectDir
 }
@@ -71,7 +71,7 @@ sourceSets {
         resources.include(
             "Classic Neg Pixel sRGB.cube",
             "Nostalgic Neg Pixel sRGB.cube",
-            "Kodachrome 64 sRGB.cube",
+            "Koda64Pixel sRGB.cube",
         )
     }
 }

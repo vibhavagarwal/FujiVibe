@@ -24,7 +24,7 @@ object PreviewFilmSimulation {
     private val LUT_DIRECTORIES = mapOf(
         FilmSimulation.CLASSIC_NEG_PIXEL to File("derived-luts"),
         FilmSimulation.NOSTALGIC_NEG_PIXEL to File("derived-luts"),
-        FilmSimulation.KODACHROME_64 to File("derived-luts"),
+        FilmSimulation.KODA64_PIXEL to File("derived-luts"),
     )
 
     fun toPixelImage(image: BufferedImage): PixelImage {
