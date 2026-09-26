@@ -6,9 +6,12 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -25,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -48,6 +52,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.fujivibe.capture.CaptureStore
+import com.fujivibe.viewfinder.pinchedZoomRatio
+import com.fujivibe.viewfinder.zoomReadout
 
 private const val TAG = "ViewfinderScreen"
 
@@ -114,6 +120,9 @@ fun ViewfinderScreen(
         ImageCapture.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3).build()
     }
     var isCapturing by remember { mutableStateOf(false) }
+    // Real camera zoom (CameraControl), so the Capture itself is zoomed - not a preview-only crop.
+    var camera by remember { mutableStateOf<Camera?>(null) }
+    var zoomRatio by remember { mutableStateOf(1f) }
 
     Box(modifier.fillMaxSize()) {
         AndroidView(
@@ -126,6 +135,28 @@ fun ViewfinderScreen(
                     // shows the whole framed area the photo will contain.
                     scaleType = PreviewView.ScaleType.FIT_CENTER
                 }
+                val scaleDetector = ScaleGestureDetector(
+                    ctx,
+                    object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                        override fun onScale(detector: ScaleGestureDetector): Boolean {
+                            val boundCamera = camera ?: return false
+                            val zoomState = boundCamera.cameraInfo.zoomState.value ?: return false
+                            zoomRatio = pinchedZoomRatio(
+                                current = zoomRatio,
+                                scaleFactor = detector.scaleFactor,
+                                min = zoomState.minZoomRatio,
+                                max = zoomState.maxZoomRatio,
+                            )
+                            boundCamera.cameraControl.setZoomRatio(zoomRatio)
+                            return true
+                        }
+                    },
+                )
+                previewView.setOnTouchListener { view, event ->
+                    scaleDetector.onTouchEvent(event)
+                    if (event.action == MotionEvent.ACTION_UP) view.performClick()
+                    true
+                }
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                 cameraProviderFuture.addListener(
                     {
@@ -135,12 +166,12 @@ fun ViewfinderScreen(
                             .build()
                             .also { it.setSurfaceProvider(previewView.surfaceProvider) }
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
+                        camera = cameraProvider.bindToLifecycle(
                             lifecycleOwner,
                             CameraSelector.DEFAULT_BACK_CAMERA,
                             preview,
                             imageCapture,
-                        )
+                        ).also { zoomRatio = it.cameraInfo.zoomState.value?.zoomRatio ?: 1f }
                     },
                     ContextCompat.getMainExecutor(ctx),
                 )
@@ -149,6 +180,18 @@ fun ViewfinderScreen(
         )
 
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
+            zoomReadout(zoomRatio)?.let { readout ->
+                Text(
+                    text = readout,
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 120.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                )
+            }
+
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
