@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FujiVibe launcher icon: one Mount Fuji scene cut into five strips, each in a different Film Simulation look. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Acros -->
+    <group>
+        <clip-path android:pathData="M0,0 L21.6,0 L21.6,108 L0,108 Z" />
+        <path android:pathData="M0,0 L21.6,0 L21.6,108 L0,108 Z" android:fillColor="#D6D3CC" />
+        <path android:pathData="M42,33 A12,12 0 1 1 66,33 A12,12 0 1 1 42,33 Z" android:fillColor="#FFFFFF" />
+        <path android:pathData="M-2,96 C22,84 36,62 45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C72,62 86,84 110,96 L110,110 L-2,110 Z" android:fillColor="#3B3B3A" />
+        <path android:pathData="M45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C64.6,47 66.2,50 68,53 L64.5,51 L61.5,55 L58.5,51.5 L55,56 L51.5,51.5 L48,55 L45,51 L40,53 C41.8,50 43.4,47 45,44 Z" android:fillColor="#F2F2F0" />
+    </group>
+    <!-- Classic Chrome -->
+    <group>
+        <clip-path android:pathData="M21.6,0 L43.2,0 L43.2,108 L21.6,108 Z" />
+        <path android:pathData="M21.6,0 L43.2,0 L43.2,108 L21.6,108 Z" android:fillColor="#A9BDB8" />
+        <path android:pathData="M42,33 A12,12 0 1 1 66,33 A12,12 0 1 1 42,33 Z" android:fillColor="#EFE3C4" />
+        <path android:pathData="M-2,96 C22,84 36,62 45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C72,62 86,84 110,96 L110,110 L-2,110 Z" android:fillColor="#3F5058" />
+        <path android:pathData="M45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C64.6,47 66.2,50 68,53 L64.5,51 L61.5,55 L58.5,51.5 L55,56 L51.5,51.5 L48,55 L45,51 L40,53 C41.8,50 43.4,47 45,44 Z" android:fillColor="#ECEAE2" />
+    </group>
+    <!-- Provia -->
+    <group>
+        <clip-path android:pathData="M43.2,0 L64.8,0 L64.8,108 L43.2,108 Z" />
+        <path android:pathData="M43.2,0 L64.8,0 L64.8,108 L43.2,108 Z" android:fillColor="#5FA8E0" />
+        <path android:pathData="M42,33 A12,12 0 1 1 66,33 A12,12 0 1 1 42,33 Z" android:fillColor="#FFE08A" />
+        <path android:pathData="M-2,96 C22,84 36,62 45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C72,62 86,84 110,96 L110,110 L-2,110 Z" android:fillColor="#2A4878" />
+        <path android:pathData="M45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C64.6,47 66.2,50 68,53 L64.5,51 L61.5,55 L58.5,51.5 L55,56 L51.5,51.5 L48,55 L45,51 L40,53 C41.8,50 43.4,47 45,44 Z" android:fillColor="#FFFFFF" />
+    </group>
+    <!-- Velvia -->
+    <group>
+        <clip-path android:pathData="M64.8,0 L86.4,0 L86.4,108 L64.8,108 Z" />
+        <path android:pathData="M64.8,0 L86.4,0 L86.4,108 L64.8,108 Z" android:fillColor="#F4805E" />
+        <path android:pathData="M42,33 A12,12 0 1 1 66,33 A12,12 0 1 1 42,33 Z" android:fillColor="#FFD34D" />
+        <path android:pathData="M-2,96 C22,84 36,62 45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C72,62 86,84 110,96 L110,110 L-2,110 Z" android:fillColor="#5A2A5C" />
+        <path android:pathData="M45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C64.6,47 66.2,50 68,53 L64.5,51 L61.5,55 L58.5,51.5 L55,56 L51.5,51.5 L48,55 L45,51 L40,53 C41.8,50 43.4,47 45,44 Z" android:fillColor="#FFE1D4" />
+    </group>
+    <!-- Classic Neg. -->
+    <group>
+        <clip-path android:pathData="M86.4,0 L108,0 L108,108 L86.4,108 Z" />
+        <path android:pathData="M86.4,0 L108,0 L108,108 L86.4,108 Z" android:fillColor="#E6C29A" />
+        <path android:pathData="M42,33 A12,12 0 1 1 66,33 A12,12 0 1 1 42,33 Z" android:fillColor="#FFF2D2" />
+        <path android:pathData="M-2,96 C22,84 36,62 45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C72,62 86,84 110,96 L110,110 L-2,110 Z" android:fillColor="#6A4A3D" />
+        <path android:pathData="M45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C64.6,47 66.2,50 68,53 L64.5,51 L61.5,55 L58.5,51.5 L55,56 L51.5,51.5 L48,55 L45,51 L40,53 C41.8,50 43.4,47 45,44 Z" android:fillColor="#FAF2E4" />
+    </group>
+</vector>

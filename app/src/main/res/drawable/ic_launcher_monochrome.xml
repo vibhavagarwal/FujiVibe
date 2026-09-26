@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FujiVibe launcher icon, monochrome layer for themed icons: sun and Mount Fuji with its snowcap cut out. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M45,28 A9,9 0 1 1 63,28 A9,9 0 1 1 45,28 Z" android:fillColor="#FFFFFF" />
+    <path android:pathData="M-2,96 C22,84 36,62 45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C72,62 86,84 110,96 L110,110 L-2,110 Z M45,44 L48,40.5 L51,42 L54,39.5 L57,42 L60,40.5 L63,44 C64.6,47 66.2,50 68,53 L64.5,51 L61.5,55 L58.5,51.5 L55,56 L51.5,51.5 L48,55 L45,51 L40,53 C41.8,50 43.4,47 45,44 Z" android:fillColor="#FFFFFF" android:fillType="evenOdd" />
+</vector>
