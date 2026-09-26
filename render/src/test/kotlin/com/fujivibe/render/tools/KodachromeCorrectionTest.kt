@@ -98,6 +98,33 @@ class KodachromeCorrectionTest {
     }
 
     @Test
+    fun `skin weight is high for a typical skin tone and zero for sky, foliage and gray`() {
+        assertTrue(KodachromeCorrection.skinWeight(Rgb(0.80f, 0.60f, 0.50f)) > 0.8f)
+        assertEquals(0f, KodachromeCorrection.skinWeight(Rgb(0.45f, 0.70f, 0.95f)), 1e-6f)
+        assertEquals(0f, KodachromeCorrection.skinWeight(Rgb(0.30f, 0.60f, 0.40f)), 1e-6f)
+        assertEquals(0f, KodachromeCorrection.skinWeight(Rgb(0.50f, 0.50f, 0.50f)), 1e-6f)
+    }
+
+    @Test
+    fun `lightenSkin pulls skin partway back toward the input, making it lighter`() {
+        val input = Rgb(0.80f, 0.60f, 0.50f)
+        val corrected = KodachromeCorrection.correct(input)
+
+        val result = KodachromeCorrection.lightenSkin(input, corrected)
+
+        assertTrue(luma(result) > luma(corrected), "skin should be lighter than the pure Kodachrome result")
+        assertTrue(luma(result) < luma(input) + 1e-4f, "but not lighter than the untouched input")
+    }
+
+    @Test
+    fun `lightenSkin leaves non-skin pixels exactly as corrected`() {
+        val sky = Rgb(0.45f, 0.70f, 0.95f)
+        val corrected = KodachromeCorrection.correct(sky)
+
+        assertEquals(corrected, KodachromeCorrection.lightenSkin(sky, corrected))
+    }
+
+    @Test
     fun `correct keeps every output channel in range and warms mid gray`() {
         val result = KodachromeCorrection.correct(Rgb(0.5f, 0.5f, 0.5f))
 

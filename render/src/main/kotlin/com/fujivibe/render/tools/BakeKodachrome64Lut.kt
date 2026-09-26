@@ -90,7 +90,10 @@ object BakeKodachrome64Lut {
                         lerp(neutralAxis.neutralize(raw.g), raw.g, toneKeep),
                         lerp(neutralAxis.neutralize(raw.b), raw.b, toneKeep),
                     )
-                    val corrected = KodachromeCorrection.correct(blended)
+                    val corrected = KodachromeCorrection.lightenSkin(
+                        input = Rgb(r / maxIndex, g / maxIndex, b / maxIndex),
+                        corrected = KodachromeCorrection.correct(blended),
+                    )
                     table[i++] = corrected.r
                     table[i++] = corrected.g
                     table[i++] = corrected.b

@@ -36,6 +36,16 @@ object KodachromeCorrection {
      */
     const val BLUE_DEEPEN = 0.20f
 
+    /**
+     * How far skin-toned pixels are pulled back toward the original input (0 = full Kodachrome,
+     * 1 = untouched). Added after user feedback that the look rendered skin too dark; 0.5 lands
+     * "in the middle between the original and the Kodachrome look."
+     */
+    const val SKIN_RESTORE = 0.5f
+
+    private const val SKIN_HUE_CENTER = 22f
+    private const val SKIN_HUE_WIDTH = 28f
+
     fun whiteBalance(rgb: Rgb): Rgb = Rgb(
         (rgb.r * WB_RED_GAIN).coerceIn(0f, 1f),
         rgb.g,
@@ -76,6 +86,45 @@ object KodachromeCorrection {
         val overRed = ((b - r) / 0.25f).coerceIn(0f, 1f)
         val overGreen = (1f - (g - b) / 0.08f).coerceIn(0f, 1f)
         return overRed * overGreen
+    }
+
+    /**
+     * `1` for warm, moderately saturated mid-tones (skin, and incidentally sand or tan wood),
+     * fading to `0` outside that hue/saturation/brightness band, so blues, greens and neutrals are
+     * never touched. Judged on the *input* pixel, before any Kodachrome processing.
+     */
+    fun skinWeight(input: Rgb): Float {
+        val max = maxOf(input.r, input.g, input.b)
+        val min = minOf(input.r, input.g, input.b)
+        val delta = max - min
+        if (delta <= 0f || max <= 0f || input.r < input.g || input.g < input.b) return 0f
+
+        val hue = 60f * ((input.g - input.b) / delta)
+        val hueWeight = (1f - Math.abs(hue - SKIN_HUE_CENTER) / SKIN_HUE_WIDTH).coerceIn(0f, 1f)
+
+        val saturation = delta / max
+        val satWeight = minOf(
+            ((saturation - 0.10f) / 0.12f).coerceIn(0f, 1f),
+            ((0.70f - saturation) / 0.15f).coerceIn(0f, 1f),
+        )
+
+        val luma = 0.2126f * input.r + 0.7152f * input.g + 0.0722f * input.b
+        val lumaWeight = minOf(
+            ((luma - 0.12f) / 0.13f).coerceIn(0f, 1f),
+            ((0.95f - luma) / 0.15f).coerceIn(0f, 1f),
+        )
+
+        return hueWeight * satWeight * lumaWeight
+    }
+
+    /** Blends skin-toned pixels of [corrected] back toward [input] by [SKIN_RESTORE]. */
+    fun lightenSkin(input: Rgb, corrected: Rgb): Rgb {
+        val t = SKIN_RESTORE * skinWeight(input)
+        return Rgb(
+            corrected.r + (input.r - corrected.r) * t,
+            corrected.g + (input.g - corrected.g) * t,
+            corrected.b + (input.b - corrected.b) * t,
+        )
     }
 
     fun correct(rgb: Rgb): Rgb {
