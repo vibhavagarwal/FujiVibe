@@ -41,6 +41,16 @@ tasks.register<JavaExec>("bakeNostalgicNegPixelLut") {
     workingDir = rootProject.projectDir
 }
 
+// ./gradlew :render:bakeKodachrome64Lut
+// Regenerates derived-luts/Kodachrome 64 sRGB.cube from KodachromeCorrection's current constants.
+tasks.register<JavaExec>("bakeKodachrome64Lut") {
+    group = "application"
+    description = "Regenerates derived-luts/Kodachrome 64 sRGB.cube from current KodachromeCorrection constants."
+    mainClass.set("com.fujivibe.render.tools.BakeKodachrome64Lut")
+    classpath = sourceSets.main.get().runtimeClasspath
+    workingDir = rootProject.projectDir
+}
+
 sourceSets {
     val proviaConversionLutsDir =
         rootProject.layout.projectDirectory.dir("raw-assets/abpy-fujifilm-camera-profiles/provia conversion luts")
@@ -61,6 +71,7 @@ sourceSets {
         resources.include(
             "Classic Neg Pixel sRGB.cube",
             "Nostalgic Neg Pixel sRGB.cube",
+            "Kodachrome 64 sRGB.cube",
         )
     }
 }

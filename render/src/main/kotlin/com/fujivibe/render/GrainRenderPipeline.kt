@@ -86,6 +86,10 @@ class GrainRenderPipeline(
         const val GRAIN_SEED = 42L
 
         /** Which Film Simulations get grain. Deliberately a set, not one hardcoded check. */
-        val GRAIN_ENABLED_SIMULATIONS = setOf(FilmSimulation.CLASSIC_NEG_PIXEL, FilmSimulation.NOSTALGIC_NEG_PIXEL)
+        val GRAIN_ENABLED_SIMULATIONS = setOf(
+            FilmSimulation.CLASSIC_NEG_PIXEL,
+            FilmSimulation.NOSTALGIC_NEG_PIXEL,
+            FilmSimulation.KODACHROME_64,
+        )
     }
 }
