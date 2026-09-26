@@ -40,3 +40,14 @@ No decisions made on any of these yet — this file just records the discussion 
 **Fix directions to decide between:** lock the orientation; handle `configChanges` so the Activity isn't recreated; or hold the in-flight Capture in a `ViewModel`, or persist its temp file path in saved state, so it survives recreation. The last is the most robust. It also protects against process death, which matters since the Capture lives in a temp file.
 
 Should be prioritized ahead of the UX polish items above, since it loses user data.
+
+## 4. Follow-ups from first on-device test of app-improvements
+
+Raised 2026-09-26 after testing the merged build on the Pixel 10 Pro. Not started; no development yet.
+
+1. **Done button isn't centered** on the Review screen.
+2. **Zoom doesn't reset after Done.** Returning to the Viewfinder keeps the last zoom level; it should revert to 1x.
+3. **Show "1x" at 1x.** The zoom readout is currently hidden when unzoomed; it should display 1x.
+4. **Zoom slider.** A slider-style control while zooming in (in addition to, or instead of, the bare readout).
+5. **Rename Koda64Pixel to "Koda64 (Pixel)"** (display name), matching the "Classic Neg. (Pixel)" / "Nostalgic Neg. (Pixel)" style. The enum, class and file names (`KODA64_PIXEL`, `Koda64PixelCorrection`, `Koda64Pixel sRGB.cube`) may stay or change with it; decide when picking this up.
+6. **Review Koda64 on more real shots.** The user has some photos taken on the phone to share, to judge the look together and retune if needed (so far tuned only against 5 non-Pixel photos).
