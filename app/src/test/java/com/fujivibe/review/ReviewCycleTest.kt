@@ -53,4 +53,26 @@ class ReviewCycleTest {
         assertEquals(cycle, cycle.next().previous())
         assertEquals(cycle, cycle.previous().next())
     }
+
+    @Test
+    fun `position and count track the place in the cycle`() {
+        val cycle = ReviewCycle.start()
+
+        assertEquals(0, cycle.position)
+        assertEquals(1 + FilmSimulation.entries.size, cycle.count)
+        assertEquals(2, cycle.next().next().position)
+    }
+
+    @Test
+    fun `at restores a cycle from its position`() {
+        val cycle = ReviewCycle.start().next()
+
+        assertEquals(cycle, ReviewCycle.at(cycle.position))
+    }
+
+    @Test
+    fun `at falls back to start for an out-of-range position`() {
+        assertEquals(ReviewCycle.start(), ReviewCycle.at(99))
+        assertEquals(ReviewCycle.start(), ReviewCycle.at(-1))
+    }
 }

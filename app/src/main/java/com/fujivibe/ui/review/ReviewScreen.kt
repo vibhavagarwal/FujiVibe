@@ -18,6 +18,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +44,12 @@ import kotlinx.coroutines.withContext
 /** How far a horizontal drag must travel before it counts as a swipe rather than a tap wobble. */
 private val SwipeThreshold = 56.dp
 
+/** Persists the swipe position across Activity recreation (e.g. rotation). */
+private val ReviewCycleSaver = Saver<ReviewCycle, Int>(
+    save = { it.position },
+    restore = { ReviewCycle.at(it) },
+)
+
 /**
  * The entry actually on screen right now, paired with its label so the two can only ever change
  * together — [ReviewCycle] alone can race ahead of the async render it's driving.
@@ -63,14 +71,19 @@ fun ReviewScreen(
     renderPipeline: RenderPipeline = remember { GrainRenderPipeline(LutRenderPipeline()) },
 ) {
     val previewSource = remember { captureStore.loadPreview()?.toPixelImage() }
-    var cycle by remember { mutableStateOf(ReviewCycle.start()) }
+    // Review can be restored from saved state after the cached Capture is gone (e.g. the OS
+    // cleared cacheDir during process death); there's nothing to show, so leave.
+    if (previewSource == null) {
+        LaunchedEffect(Unit) { onDiscard() }
+        return
+    }
+    var cycle by rememberSaveable(stateSaver = ReviewCycleSaver) { mutableStateOf(ReviewCycle.start()) }
     // Updated only once the matching render completes, so the label and the bitmap on screen
     // never point at two different entries mid-swipe.
     var displayed by remember { mutableStateOf(DisplayedFrame(cycle, bitmap = null)) }
 
     LaunchedEffect(cycle, previewSource) {
-        val source = previewSource ?: return@LaunchedEffect
-        displayed = DisplayedFrame(cycle, renderPipeline.render(source, cycle.current).toBitmap())
+        displayed = DisplayedFrame(cycle, renderPipeline.render(previewSource, cycle.current).toBitmap())
     }
 
     // Full-resolution render + gallery write is slow (CPU LUT interpolation at real photo

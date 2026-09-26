@@ -12,6 +12,11 @@ class ReviewCycle private constructor(private val index: Int) {
 
     val current: RenderSelection get() = ENTRIES[index]
 
+    /** Zero-based place in the cycle; with [count], drives the position dots and saved state. */
+    val position: Int get() = index
+
+    val count: Int get() = ENTRIES.size
+
     val label: String
         get() = when (val entry = current) {
             RenderSelection.Original -> "Original"
@@ -32,5 +37,9 @@ class ReviewCycle private constructor(private val index: Int) {
 
         /** Every new Capture opens Review here, regardless of what was showing last time. */
         fun start(): ReviewCycle = ReviewCycle(0)
+
+        /** Restores a cycle from a saved [position]; an out-of-range value falls back to [start]. */
+        fun at(position: Int): ReviewCycle =
+            if (position in ENTRIES.indices) ReviewCycle(position) else start()
     }
 }
