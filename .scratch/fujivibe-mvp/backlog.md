@@ -26,3 +26,13 @@ Rough-prioritized, from building/testing tickets 01-04:
 - **Visual polish is essentially default Material.** Plain text labels, stock buttons, no real branding/hierarchy — Export and Discard currently look equally weighted despite Export being the primary/happy-path action.
 
 No decisions made on any of these yet — this file just records the discussion so it doesn't need to be re-derived.
+
+## 3. BUG: rotating the phone during Review discards the Capture
+
+**Reported 2026-09-26.** After taking a photo, if the phone's orientation changes (e.g. accidentally rotated), the Capture is lost and the app drops back to the Viewfinder. Annoying because the shot is unrecoverable.
+
+**Likely cause (not yet confirmed):** a rotation recreates the Activity, and the app keeps its Review/Capture state in memory that doesn't survive that. `app/src/main` has no `ViewModel`, no `rememberSaveable`, and no `configChanges`/`screenOrientation` in the manifest, which fits.
+
+**Fix directions to decide between:** lock the orientation; handle `configChanges` so the Activity isn't recreated; or hold the in-flight Capture in a `ViewModel`, or persist its temp file path in saved state, so it survives recreation. The last is the most robust. It also protects against process death, which matters since the Capture lives in a temp file.
+
+Should be prioritized ahead of the UX polish items above, since it loses user data.
