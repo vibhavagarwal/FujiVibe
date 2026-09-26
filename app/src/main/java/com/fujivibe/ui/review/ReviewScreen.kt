@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,6 +53,9 @@ import kotlinx.coroutines.withContext
 
 /** How far a horizontal drag must travel before it counts as a swipe rather than a tap wobble. */
 private val SwipeThreshold = 56.dp
+
+/** Both bottom buttons share this width so the pair is symmetric about the screen center. */
+private val ReviewButtonWidth = 120.dp
 
 /** Persists the swipe position across Activity recreation (e.g. rotation). */
 private val ReviewCycleSaver = Saver<ReviewCycle, Int>(
@@ -173,6 +177,7 @@ fun ReviewScreen(
                 modifier = Modifier.align(Alignment.BottomCenter).padding(32.dp),
             ) {
                 Button(
+                    modifier = Modifier.width(ReviewButtonWidth),
                     onClick = {
                         captureStore.discard()
                         onClose()
@@ -183,6 +188,7 @@ fun ReviewScreen(
                 }
 
                 Button(
+                    modifier = Modifier.width(ReviewButtonWidth),
                     enabled = !isExporting && displayed.bitmap != null && savedLooks.canExport(shownSelection),
                     onClick = {
                         isExporting = true
