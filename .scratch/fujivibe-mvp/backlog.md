@@ -23,7 +23,7 @@ Rough-prioritized, from building/testing tickets 01-04:
 
 - **DONE (2026-09-26): snackbar on Export success/failure.** **Export gives no confirmation.** Silently returns to Viewfinder on success; on failure there's currently no UI signal at all that anything went wrong (story 20 wants the shot preserved on failure, but the user isn't told a failure happened — the Capture is just quietly still there with no explanation).
 - **DONE (2026-09-26): position dots under the label.** **Swipe position isn't visible.** Only the text label ("Original" / "Classic Neg." / "Nostalgic Neg.") shows where you are in the cycle — a simple dot indicator (e.g. `●○○`) would make the 3-entry cycle easier to read at a glance.
-- **Camera-permission-denied is a dead end.** If the user permanently denies camera permission, `ViewfinderScreen` just shows static text with no retry or "open Settings" affordance.
+- **DONE (2026-09-26): Grant permission / Open Settings buttons, re-checked on resume.** **Camera-permission-denied is a dead end.** If the user permanently denies camera permission, `ViewfinderScreen` just shows static text with no retry or "open Settings" affordance.
 - **Full-resolution render latency.** CPU trilinear LUT interpolation is roughly ~1µs/pixel (see the `fujivibe-render-pipeline-perf` note from ticket 03/04) — a full-res Export can take 10-40+ seconds. Ticket 04 added a loading spinner to cover this, but it's worth deciding whether that wait is acceptable long-term or worth pipeline-parallelization work.
 - **Visual polish is essentially default Material.** Plain text labels, stock buttons, no real branding/hierarchy — Export and Discard currently look equally weighted despite Export being the primary/happy-path action.
 
