@@ -5,7 +5,7 @@ FujiVibe is a personal Android camera app that captures a JPEG photo and lets th
 ## Language
 
 **Capture**:
-The full-resolution JPEG produced by a single shutter press, held temporarily until the user Exports or Discards it.
+The full-resolution JPEG produced by a single shutter press, held temporarily until the user is Done with it or Discards it. Any number of looks may be Exported from it in between.
 _Avoid_: Photo, Shot, Image
 
 **Original**:
@@ -25,13 +25,17 @@ The live camera preview screen shown before a Capture is taken.
 _Avoid_: Camera screen, Live view
 
 **Review**:
-The screen where the user inspects a Capture, swiping between Original and the available Film Simulations before deciding to Export or Discard.
+The screen where the user inspects a Capture, swiping between Original and the available Film Simulations Exporting as many looks as wanted, then closing with Done or Discard.
 _Avoid_: Preview screen, Filter screen
 
 **Export**:
-Saving the currently selected rendering of the Capture — a Film Simulation applied, or Original — permanently to the system gallery. Ends the Capture's lifecycle.
+Saving the currently selected rendering of the Capture — a Film Simulation applied, or Original — permanently to the system gallery. Does not end the Capture's lifecycle: Review stays open so other looks can be Exported too, and each look can be Exported at most once per Capture (see ADR 0009).
 _Avoid_: Save, Confirm
 
 **Discard**:
 Abandoning a Capture without saving anything and returning to the Viewfinder. Ends the Capture's lifecycle.
 _Avoid_: Cancel, Delete
+
+**Done**:
+Closing Review after at least one look has been Exported: deletes the temp Capture and returns to the Viewfinder. Ends the Capture's lifecycle. Takes Discard's place once anything has been saved.
+_Avoid_: Finish, Close

@@ -43,8 +43,7 @@ fun FujiVibeApp() {
             )
             Screen.Review -> ReviewScreen(
                 captureStore = captureStore,
-                onDiscard = { screen = Screen.Viewfinder },
-                onExported = { screen = Screen.Viewfinder },
+                onClose = { screen = Screen.Viewfinder },
                 galleryWriter = galleryWriter,
             )
         }
