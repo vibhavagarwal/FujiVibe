@@ -51,3 +51,15 @@ Raised 2026-09-26 after testing the merged build on the Pixel 10 Pro. Not starte
 4. **Zoom slider.** A slider-style control while zooming in (in addition to, or instead of, the bare readout).
 5. **Rename Koda64Pixel to "Koda64 (Pixel)"** (display name), matching the "Classic Neg. (Pixel)" / "Nostalgic Neg. (Pixel)" style. The enum, class and file names (`KODA64_PIXEL`, `Koda64PixelCorrection`, `Koda64Pixel sRGB.cube`) may stay or change with it; decide when picking this up.
 6. **Review Koda64 on more real shots.** The user has some photos taken on the phone to share, to judge the look together and retune if needed (so far tuned only against 5 non-Pixel photos).
+
+## 5. Portrait mode (background blur) when taking a picture
+
+Raised 2026-09-26: wants a Pixel-style Portrait option on the Viewfinder. Not started; needs a feasibility check first.
+
+**Option A (preferred if available): CameraX Extensions, `ExtensionMode.BOKEH`.** Uses the phone's own portrait processing; the Capture comes back as a normal JPEG with the blur baked in, so Review and all Film Simulations (including Koda64) work unchanged. Small amount of code: a Portrait toggle plus binding with an extension-enabled camera selector. Extensions can limit zoom behavior and shooting speed in that mode.
+
+**Availability is unconfirmed for the Pixel 10 Pro.** Docs research (2026-09-26): Google's supported-devices page (developer.android.com/training/camera/supported-devices, updated 2026-09-16) lists Pixel 6 through 9 plus Fold/Tablet but *no Pixel 10 or 10 Pro*, and doesn't say which extension modes each Pixel supports. The only Pixel-specific evidence found (a 2022 Open Camera write-up) shows Night Sight via extensions on Pixel 6, with Bokeh only on Samsung. Bokeh on Pixel looks unlikely but is not proven either way.
+
+**Step 1: on-device check.** Add a throwaway diagnostic that asks `ExtensionsManager.isExtensionAvailable(...)` for `BOKEH` (and the other modes) on the back camera, run it on the Pixel 10 Pro, then remove it. This gives a definitive answer in a few lines of code.
+
+**Option B (fallback if Bokeh is unavailable): our own blur.** Run an on-device subject-segmentation model (e.g. ML Kit) and blur the background, either at capture or as a Review-time option applied before the LUT. Works on any phone but is a much bigger project: new dependency and model, visibly weaker edge quality (hair) than Google's, and it adds to full-resolution Export time (already 10-40+ seconds). Decide whether it's worth building before starting.
