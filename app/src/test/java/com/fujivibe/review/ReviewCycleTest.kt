@@ -26,11 +26,15 @@ class ReviewCycleTest {
         val afterSecondNext = afterFirstNext.next()
         assertEquals(RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG_PIXEL), afterSecondNext.current)
         assertEquals("Nostalgic Neg. (Pixel)", afterSecondNext.label)
+
+        val afterThirdNext = afterSecondNext.next()
+        assertEquals(RenderSelection.Simulation(FilmSimulation.KODA64_PIXEL), afterThirdNext.current)
+        assertEquals("Koda64Pixel", afterThirdNext.label)
     }
 
     @Test
     fun `next wraps from the last Film Simulation back to Original`() {
-        val lastEntry = ReviewCycle.start().next().next()
+        val lastEntry = ReviewCycle.start().next().next().next()
 
         val wrapped = lastEntry.next()
 
@@ -43,7 +47,7 @@ class ReviewCycleTest {
 
         val wrapped = cycle.previous()
 
-        assertEquals(RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG_PIXEL), wrapped.current)
+        assertEquals(RenderSelection.Simulation(FilmSimulation.KODA64_PIXEL), wrapped.current)
     }
 
     @Test
