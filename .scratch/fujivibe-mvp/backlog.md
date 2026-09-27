@@ -71,3 +71,11 @@ Raised 2026-09-26: wants a Pixel-style Portrait option on the Viewfinder. Not st
 - Item 5: **DONE.** Display name is "Koda64 (Pixel)"; the LUT file is renamed to `Koda64 Pixel sRGB.cube` like its siblings (bytes unchanged). Code identifiers (`KODA64_PIXEL`, `Koda64PixelCorrection`, `BakeKoda64PixelLut`) kept, since they already follow the Classic Neg. naming pattern.
 - Item 6 (review Koda64 on real Pixel photos): **not started.**
 - Section 5 (portrait mode): **DROPPED.** The on-device check reported `BOKEH=no HDR=no NIGHT=yes FACE_RETOUCH=no AUTO=no` on the Pixel 10 Pro's back camera. Per the no-fallback decision, portrait mode is dropped; the diagnostic and the camera-extensions dependency were removed.
+
+## 6. Future phase ideas (raised 2026-09-27; nothing to be done yet)
+
+Recorded only. No design, feasibility check or development until the user picks them up.
+
+1. **In-app gallery.** Browse photos taken with FujiVibe inside the app.
+2. **Automatic shot-type detection.** Tell whether a photo is a close-up portrait or a landscape shot.
+3. **Automatic crop to the main face.** Crop the photo around the main face in the frame. The user will explain the intended behavior later; don't design it before then.
