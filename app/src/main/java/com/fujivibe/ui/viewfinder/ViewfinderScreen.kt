@@ -66,6 +66,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -535,6 +536,8 @@ fun ViewfinderScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(start = 16.dp, end = 16.dp, bottom = 128.dp)
+                    // Capped so a sideways screen doesn't stretch the ruler edge to edge.
+                    .widthIn(max = 480.dp)
                     .fillMaxWidth()
                     .background(PanelBackground.copy(alpha = PanelBackground.alpha * panelAlpha), RoundedCornerShape(18.dp))
                     .padding(8.dp),

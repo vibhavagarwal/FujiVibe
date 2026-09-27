@@ -2,6 +2,7 @@ package com.fujivibe.ui.review
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.text.SpanStyle
@@ -66,6 +67,9 @@ import kotlinx.coroutines.withContext
 
 /** How far a horizontal drag must travel before it counts as a swipe rather than a tap wobble. */
 private val SwipeThreshold = 56.dp
+
+/** Widest the Discard/Export row gets; about a phone held upright. */
+private val BottomBarMaxWidth = 400.dp
 
 /** Persists the swipe position across Activity recreation (e.g. rotation). */
 private val ReviewCycleSaver = Saver<ReviewCycle, Int>(
@@ -241,10 +245,12 @@ fun ReviewScreen(
                 if (isSaved) {
                     PrimaryButton(text = savedLooks.closeActionLabel, enabled = !isExporting, onClick = ::close)
                 } else {
+                    // Capped so the pair stays together, rather than splitting to the far edges of a
+                    // sideways screen.
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.widthIn(max = BottomBarMaxWidth).fillMaxWidth(),
                     ) {
                         TextButton(onClick = ::close, enabled = !isExporting) {
                             Text(savedLooks.closeActionLabel, color = Paper, fontSize = 16.sp)
