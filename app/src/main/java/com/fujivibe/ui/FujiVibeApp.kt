@@ -1,8 +1,10 @@
 package com.fujivibe.ui
 
+import androidx.camera.core.CameraSelector
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
@@ -34,12 +36,17 @@ fun FujiVibeApp() {
     val captureStore = remember { CaptureStore(context) }
     val galleryWriter = remember { MediaStoreGalleryWriter(context) }
     var screen by rememberSaveable(stateSaver = ScreenSaver) { mutableStateOf<Screen>(Screen.Viewfinder) }
+    // Held here rather than in the Viewfinder so a selfie session stays on the front camera
+    // across trips through Review.
+    var lensFacing by rememberSaveable { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
 
     MaterialTheme {
         when (screen) {
             Screen.Viewfinder -> ViewfinderScreen(
                 captureStore = captureStore,
                 onCaptured = { screen = Screen.Review },
+                lensFacing = lensFacing,
+                onLensFacingChange = { lensFacing = it },
             )
             Screen.Review -> ReviewScreen(
                 captureStore = captureStore,
