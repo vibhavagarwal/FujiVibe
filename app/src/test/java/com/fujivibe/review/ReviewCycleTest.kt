@@ -29,7 +29,7 @@ class ReviewCycleTest {
 
         val afterThirdNext = afterSecondNext.next()
         assertEquals(RenderSelection.Simulation(FilmSimulation.KODA64_PIXEL), afterThirdNext.current)
-        assertEquals("Koda64Pixel", afterThirdNext.label)
+        assertEquals("Koda64 (Pixel)", afterThirdNext.label)
     }
 
     @Test

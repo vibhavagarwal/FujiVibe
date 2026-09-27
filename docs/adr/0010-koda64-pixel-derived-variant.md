@@ -2,16 +2,16 @@
 status: accepted
 ---
 
-# Koda64Pixel (the Kodachrome 64 recipe): a derived variant built on the linear-input Classic Chrome LUT
+# Koda64 (Pixel), the Kodachrome 64 recipe: a derived variant built on the linear-input Classic Chrome LUT
 
 The Kodachrome 64 recipe (fujixweekly, X-T5) is Classic Chrome plus in-camera settings: Grain Weak/Small,
 Color Chrome Effect Strong, WB Daylight +2 Red/-5 Blue, DR200, Shadow +0.5, Color +2, Clarity +3.
 FujiVibe's engine is a single baked `.cube` (ADR 0001), and ADR 0004 shelved the pack's Classic Chrome LUT
 because it expects linear input, not a gamma-encoded JPEG.
 
-**Decision:** ship `KODA64_PIXEL` ("Koda64Pixel", the user's name for the Kodachrome 64 recipe look) as a FujiVibe-derived Film Simulation, keeping the runtime
+**Decision:** ship `KODA64_PIXEL` ("Koda64 (Pixel)", the user's name for the Kodachrome 64 recipe look) as a FujiVibe-derived Film Simulation, keeping the runtime
 pipeline unchanged (`Cube3DLut`, `LutRenderPipeline`, `ResourceLutLoader` untouched). The derived
-`derived-luts/Koda64Pixel sRGB.cube` is baked offline by `BakeKoda64PixelLut`:
+`derived-luts/Koda64 Pixel sRGB.cube` is baked offline by `BakeKoda64PixelLut`:
 
 1. each grid point's sRGB-encoded coordinate is linearized before sampling `classic chrome_sRGB.cube`
    (the pre-transform ADR 0004 wanted, paid for offline, not at runtime);

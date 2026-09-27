@@ -1,11 +1,11 @@
-# Koda64Pixel (Kodachrome 64 recipe) Spec
+# Koda64 (Pixel) Spec: the Kodachrome 64 recipe
 
 ## Problem Statement
 The user wants the fujixweekly "Kodachrome 64" film simulation recipe (Classic Chrome base, X-T5) as a new look in
 FujiVibe. The pack's Classic Chrome LUT expects linear input (ADR 0004), so it can't be applied to a JPEG directly.
 
 ## Solution
-Bake a derived `Koda64Pixel sRGB.cube` offline (see ADR 0010): linearize input, divide the LUT's built-in tone curve
+Bake a derived `Koda64 Pixel sRGB.cube` offline (see ADR 0010): linearize input, divide the LUT's built-in tone curve
 mostly back out, then apply `Koda64PixelCorrection` (warm WB, deeper shadows, highlight roll-off, Color/Color Chrome,
 blue deepening, skin lightening). Registered as `FilmSimulation.KODA64_PIXEL`, last in the swipe order, with grain.
 

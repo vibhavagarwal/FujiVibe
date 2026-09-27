@@ -6,7 +6,7 @@ import com.fujivibe.render.Rgb
 import java.io.File
 
 /**
- * Derives `derived-luts/Koda64Pixel sRGB.cube` from the pack's `classic chrome_sRGB.cube`.
+ * Derives `derived-luts/Koda64 Pixel sRGB.cube` from the pack's `classic chrome_sRGB.cube`.
  * That LUT expects scene-linear input (ADR 0004), but the app feeds it gamma-encoded JPEG pixels,
  * so each grid point's sRGB-encoded coordinate is linearized here, offline, before sampling the
  * source; the LUT's own built-in tone curve is then largely divided back out (see
@@ -18,7 +18,7 @@ object BakeKoda64PixelLut {
 
     private val SOURCE_LUT =
         File("raw-assets/abpy-fujifilm-camera-profiles/cube lut/classic chrome_sRGB.cube")
-    private val OUTPUT_LUT = File("derived-luts/Koda64Pixel sRGB.cube")
+    private val OUTPUT_LUT = File("derived-luts/Koda64 Pixel sRGB.cube")
 
     /**
      * The source LUT bakes in a strong raw-to-display tone curve (its neutral axis maps linear
