@@ -302,7 +302,7 @@ private fun SecondaryButton(text: String, enabled: Boolean, onClick: () -> Unit)
         enabled = enabled,
         shape = RoundedCornerShape(24.dp),
         contentPadding = PaddingValues(horizontal = 28.dp, vertical = 10.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Paper.copy(alpha = 0.14f), contentColor = Paper),
+        colors = ButtonDefaults.buttonColors(containerColor = Paper.copy(alpha = 0.26f), contentColor = Paper),
     ) {
         Text(text, fontSize = 16.sp)
     }
