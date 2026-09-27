@@ -13,6 +13,7 @@ import com.fujivibe.capture.shootingInfoLine
 import com.fujivibe.ui.theme.Amber
 import com.fujivibe.ui.theme.Paper
 import com.fujivibe.ui.theme.PaperMuted
+import com.fujivibe.ui.theme.Scrim
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -223,7 +224,17 @@ fun ReviewScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 24.dp),
             ) {
-                shootingInfo?.let { Text(it, color = PaperMuted, fontSize = 14.sp) }
+                // On its own dark backing, so it stays readable wherever the photo's edge falls.
+                shootingInfo?.let {
+                    Text(
+                        it,
+                        color = Paper.copy(alpha = 0.85f),
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .background(Scrim, RoundedCornerShape(10.dp))
+                            .padding(horizontal = 12.dp, vertical = 5.dp),
+                    )
+                }
 
                 // A saved look has nothing left to export (its title already carries the
                 // checkmark), so Done stands alone, centered, as the one strong button.

@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.IOException
+import java.util.Locale
 import kotlin.math.roundToInt
 
 private const val TAG = "CaptureStore"
@@ -39,7 +40,8 @@ class CaptureStore(context: Context) {
         if (!file.exists()) return
         try {
             ExifInterface(file.path).apply {
-                setAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO, "${(zoomRatio * 100).roundToInt()}/100")
+                // ExifInterface parses this tag as a decimal and rejects "a/b" fractions.
+                setAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO, String.format(Locale.US, "%.2f", zoomRatio))
                 if (exposureBiasStops != null) {
                     setAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, "${(exposureBiasStops * 100).roundToInt()}/100")
                 }
