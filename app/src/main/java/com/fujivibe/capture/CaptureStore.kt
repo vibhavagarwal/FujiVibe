@@ -4,8 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
+import java.io.IOException
+import kotlin.math.roundToInt
+
+private const val TAG = "CaptureStore"
 
 /**
  * Holds the app's single in-flight temp Capture. The backing file is fixed
@@ -21,6 +26,52 @@ class CaptureStore(context: Context) {
     }
 
     fun loadFullResolution(): Bitmap? = decode(BitmapFactory.Options())
+
+    /** The Capture's file, for copying its camera metadata onto an Export; null if there is none. */
+    fun metadataSource(): File? = file.takeIf { it.exists() }
+
+    /**
+     * Adds what only FujiVibe knows to the Capture's EXIF: the zoom it was taken at and, for a
+     * manual exposure, how much brighter or darker it is than the camera's metering.
+     * The camera already records ISO, shutter, aperture and date itself.
+     */
+    fun recordShootingSettings(zoomRatio: Float, exposureBiasStops: Double?) {
+        if (!file.exists()) return
+        try {
+            ExifInterface(file.path).apply {
+                setAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO, "${(zoomRatio * 100).roundToInt()}/100")
+                if (exposureBiasStops != null) {
+                    setAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, "${(exposureBiasStops * 100).roundToInt()}/100")
+                }
+                saveAttributes()
+            }
+        } catch (e: IOException) {
+            Log.w(TAG, "Couldn't record shooting settings", e)
+        }
+    }
+
+    /** What the Capture was shot with, read back from its EXIF; null if there's no Capture. */
+    fun shootingInfo(): ShootingInfo? {
+        if (!file.exists()) return null
+        return try {
+            val exif = ExifInterface(file.path)
+            // Measured from the JPEG itself; EXIF size tags aren't reliably present.
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.path, bounds)
+            ShootingInfo(
+                iso = exif.getAttributeInt(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, -1).takeIf { it > 0 },
+                exposureTimeSeconds = exif.getAttributeDouble(ExifInterface.TAG_EXPOSURE_TIME, -1.0).takeIf { it > 0 },
+                exposureBiasStops = exif.getAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE)
+                    ?.let { exif.getAttributeDouble(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, 0.0) },
+                zoomRatio = exif.getAttributeDouble(ExifInterface.TAG_DIGITAL_ZOOM_RATIO, -1.0).takeIf { it > 0 },
+                width = bounds.outWidth,
+                height = bounds.outHeight,
+            )
+        } catch (e: IOException) {
+            Log.w(TAG, "Couldn't read shooting settings", e)
+            null
+        }
+    }
 
     /**
      * A downscaled decode of the same Capture, so Review's per-swipe LUT render stays fast.

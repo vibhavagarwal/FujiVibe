@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import android.util.Log
 import com.fujivibe.bitmap.toBitmap
 import com.fujivibe.render.PixelImage
+import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,7 @@ class MediaStoreGalleryWriter(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : GalleryWriter {
 
-    override suspend fun save(image: PixelImage): Boolean = withContext(dispatcher) {
+    override suspend fun save(image: PixelImage, metadataFrom: File?): Boolean = withContext(dispatcher) {
         val request = galleryWriteRequest(System.currentTimeMillis())
         val resolver = context.contentResolver
 
@@ -55,6 +56,15 @@ class MediaStoreGalleryWriter(
             if (!wrote) {
                 resolver.delete(uri, null, null)
                 return@withContext false
+            }
+
+            // Best effort: a photo without its camera details is still worth keeping.
+            if (metadataFrom != null) {
+                try {
+                    resolver.openFileDescriptor(uri, "rw")?.use { copyCameraMetadata(metadataFrom, it.fileDescriptor) }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Couldn't copy camera metadata onto the export", e)
+                }
             }
 
             // Only IS_PENDING=0 actually makes the file visible in the gallery, so a request

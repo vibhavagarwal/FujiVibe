@@ -1,7 +1,6 @@
 package com.fujivibe.ui
 
 import androidx.camera.core.CameraSelector
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -14,6 +13,12 @@ import androidx.compose.ui.platform.LocalContext
 import com.fujivibe.capture.CaptureStore
 import com.fujivibe.gallery.MediaStoreGalleryWriter
 import com.fujivibe.ui.review.ReviewScreen
+import com.fujivibe.ui.theme.FujiVibeTheme
+import com.fujivibe.ui.theme.Ink
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import com.fujivibe.ui.viewfinder.ViewfinderScreen
 
 private sealed interface Screen {
@@ -40,19 +45,21 @@ fun FujiVibeApp() {
     // across trips through Review.
     var lensFacing by rememberSaveable { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
 
-    MaterialTheme {
-        when (screen) {
-            Screen.Viewfinder -> ViewfinderScreen(
-                captureStore = captureStore,
-                onCaptured = { screen = Screen.Review },
-                lensFacing = lensFacing,
-                onLensFacingChange = { lensFacing = it },
-            )
-            Screen.Review -> ReviewScreen(
-                captureStore = captureStore,
-                onClose = { screen = Screen.Viewfinder },
-                galleryWriter = galleryWriter,
-            )
+    FujiVibeTheme {
+        Box(Modifier.fillMaxSize().background(Ink)) {
+            when (screen) {
+                Screen.Viewfinder -> ViewfinderScreen(
+                    captureStore = captureStore,
+                    onCaptured = { screen = Screen.Review },
+                    lensFacing = lensFacing,
+                    onLensFacingChange = { lensFacing = it },
+                )
+                Screen.Review -> ReviewScreen(
+                    captureStore = captureStore,
+                    onClose = { screen = Screen.Viewfinder },
+                    galleryWriter = galleryWriter,
+                )
+            }
         }
     }
 }

@@ -1,5 +1,20 @@
 package com.fujivibe.ui.viewfinder
 
+import android.os.Build
+import android.view.HapticFeedbackConstants
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.ui.platform.LocalView
+import com.fujivibe.ui.theme.Amber
+import com.fujivibe.ui.theme.Paper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -116,6 +131,10 @@ private const val MIN_FRAME_DURATION_NS = 33_333_333L
 /** Used only if manual mode starts before the camera has reported a single metered frame. */
 private val FALLBACK_METERED = Exposure(iso = 100, exposureTimeNs = 10_000_000L)
 
+/** Firm click for the shutter; CONFIRM needs Android 11, older phones get a key-press tap. */
+private val SHUTTER_HAPTIC =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.CONFIRM else HapticFeedbackConstants.VIRTUAL_KEY
+
 /** Which setting the shared dial is driving. */
 private enum class Dial { ZOOM, ISO, SHUTTER }
 
@@ -222,6 +241,8 @@ fun ViewfinderScreen(
     val coroutineScope = rememberCoroutineScope()
     var countdown by remember { mutableStateOf<Int?>(null) }
     var countdownJob by remember { mutableStateOf<Job?>(null) }
+    val view = LocalView.current
+    val shutterBlink = remember { Animatable(0f) }
 
     // Level line: the horizon's on-screen angle from the gravity sensor, only while switched on.
     var horizon by remember { mutableStateOf<Float?>(null) }
@@ -400,6 +421,17 @@ fun ViewfinderScreen(
     fun takePhoto() {
         val capture = imageCapture ?: return
         isCapturing = true
+        view.performHapticFeedback(SHUTTER_HAPTIC)
+        coroutineScope.launch {
+            shutterBlink.snapTo(0.7f)
+            shutterBlink.animateTo(0f, tween(220))
+        }
+        // Snapshotted now: zoom and any manual brightness offset, written into the photo's EXIF
+        // so Review (and the Export) can show what the shot was taken with.
+        val zoomAtCapture = zoomRatio
+        val biasAtCapture = manualSupport?.let { support ->
+            currentExposure(support)?.let { exposureOffsetStops(it, meter.latest ?: FALLBACK_METERED) }
+        }
         val outputFile = captureStore.fileForNewCapture()
         // Selfies are saved as the mirrored preview showed them, like Google Camera's
         // default "mirror selfies".
@@ -414,8 +446,11 @@ fun ViewfinderScreen(
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    isCapturing = false
-                    onCaptured()
+                    coroutineScope.launch {
+                        withContext(Dispatchers.IO) { captureStore.recordShootingSettings(zoomAtCapture, biasAtCapture) }
+                        isCapturing = false
+                        onCaptured()
+                    }
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -440,6 +475,7 @@ fun ViewfinderScreen(
         countdownJob = coroutineScope.launch {
             for (left in timer.seconds downTo 1) {
                 countdown = left
+                view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 delay(1000)
             }
             countdown = null
@@ -451,6 +487,7 @@ fun ViewfinderScreen(
         AndroidView(modifier = Modifier.fillMaxSize(), factory = { previewView })
         FrameOverlay(aspect = aspect, grid = gridOn, horizonAngle = if (levelOn) horizon else null)
         countdown?.let { Countdown(it) }
+        ShutterBlink(shutterBlink.value)
 
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
             TopBar(
@@ -490,100 +527,106 @@ fun ViewfinderScreen(
                 ?: exposure?.let { shutterReadout(it.exposureTimeNs) }
                 ?: "Shutter Auto"
 
+            // The panel's backing fades in with it; the tab row's own backing fades the other way.
+            val panelAlpha by animateFloatAsState(if (dialVisible) 1f else 0f, tween(180), label = "panel")
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(start = 16.dp, end = 16.dp, bottom = 128.dp)
-                    .then(
-                        if (dialVisible) {
-                            Modifier.fillMaxWidth().background(PanelBackground, RoundedCornerShape(18.dp)).padding(8.dp)
-                        } else {
-                            Modifier
-                        }
-                    ),
+                    .fillMaxWidth()
+                    .background(PanelBackground.copy(alpha = PanelBackground.alpha * panelAlpha), RoundedCornerShape(18.dp))
+                    .padding(8.dp),
             ) {
-                if (dialVisible) {
-                    Text(
-                        text = when (activeDial) {
-                            Dial.ZOOM -> zoomReadout(zoomRatio)
-                            Dial.ISO -> isoText
-                            Dial.SHUTTER -> shutterText
-                        },
-                        color = PanelAccent,
-                        fontSize = 14.sp,
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        when (activeDial) {
-                            Dial.ZOOM -> {
-                                val zoomState = camera?.cameraInfo?.zoomState?.value
-                                val minZoom = zoomState?.minZoomRatio ?: 1f
-                                val maxZoom = zoomState?.maxZoomRatio ?: 1f
-                                if (maxZoom > minZoom) {
+                AnimatedVisibility(
+                    visible = dialVisible,
+                    enter = fadeIn(tween(180)) + expandVertically(expandFrom = Alignment.Bottom),
+                    exit = fadeOut(tween(150)) + shrinkVertically(shrinkTowards = Alignment.Bottom),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = when (activeDial) {
+                                Dial.ZOOM -> zoomReadout(zoomRatio)
+                                Dial.ISO -> isoText
+                                Dial.SHUTTER -> shutterText
+                            },
+                            color = PanelAccent,
+                            fontSize = 14.sp,
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            when (activeDial) {
+                                Dial.ZOOM -> {
+                                    val zoomState = camera?.cameraInfo?.zoomState?.value
+                                    val minZoom = zoomState?.minZoomRatio ?: 1f
+                                    val maxZoom = zoomState?.maxZoomRatio ?: 1f
+                                    if (maxZoom > minZoom) {
+                                        Ruler(
+                                            fraction = zoomToSliderFraction(zoomRatio, minZoom, maxZoom),
+                                            onFraction = { applyZoom(sliderFractionToZoom(it, minZoom, maxZoom)) },
+                                            tickCount = 31,
+                                            majorEvery = 5,
+                                            dimmed = false,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                    } else {
+                                        Box(Modifier.weight(1f))
+                                    }
+                                    ResetButton("1x", active = zoomRatio == 1f, onClick = { applyZoom(1f.coerceIn(minZoom, maxZoom)) })
+                                }
+                                Dial.ISO -> if (support != null) {
+                                    val stops = support.isoStops
+                                    val current = isoChoice ?: exposure?.iso ?: (meter.latest ?: FALLBACK_METERED).iso
+                                    val index = stops.indices.minBy { abs(stops[it] - current) }
                                     Ruler(
-                                        fraction = zoomToSliderFraction(zoomRatio, minZoom, maxZoom),
-                                        onFraction = { applyZoom(sliderFractionToZoom(it, minZoom, maxZoom)) },
-                                        tickCount = 31,
-                                        majorEvery = 5,
-                                        dimmed = false,
+                                        fraction = index.toFloat() / (stops.size - 1).coerceAtLeast(1),
+                                        onFraction = { f ->
+                                            val picked = stops[(f * (stops.size - 1)).roundToInt()]
+                                            if (picked != isoChoice) {
+                                                isoChoice = picked
+                                                applyExposure()
+                                                view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                                            }
+                                            keepDialOpen()
+                                        },
+                                        tickCount = stops.size,
+                                        majorEvery = 3,
+                                        dimmed = isoChoice == null,
                                         modifier = Modifier.weight(1f),
                                     )
-                                } else {
-                                    Box(Modifier.weight(1f))
+                                    ResetButton("Auto", active = isoChoice == null, onClick = {
+                                        isoChoice = null
+                                        applyExposure()
+                                        keepDialOpen()
+                                    })
                                 }
-                                ResetButton("1x", active = zoomRatio == 1f, onClick = { applyZoom(1f.coerceIn(minZoom, maxZoom)) })
-                            }
-                            Dial.ISO -> if (support != null) {
-                                val stops = support.isoStops
-                                val current = isoChoice ?: exposure?.iso ?: (meter.latest ?: FALLBACK_METERED).iso
-                                val index = stops.indices.minBy { abs(stops[it] - current) }
-                                Ruler(
-                                    fraction = index.toFloat() / (stops.size - 1).coerceAtLeast(1),
-                                    onFraction = { f ->
-                                        val picked = stops[(f * (stops.size - 1)).roundToInt()]
-                                        if (picked != isoChoice) {
-                                            isoChoice = picked
-                                            applyExposure()
-                                        }
+                                Dial.SHUTTER -> if (support != null) {
+                                    val stops = support.shutterStops
+                                    val current = shutterChoiceNs ?: exposure?.exposureTimeNs
+                                        ?: (meter.latest ?: FALLBACK_METERED).exposureTimeNs
+                                    val index = stops.indices.minBy { abs(ln(stops[it].toDouble() / current)) }
+                                    Ruler(
+                                        fraction = index.toFloat() / (stops.size - 1).coerceAtLeast(1),
+                                        onFraction = { f ->
+                                            val picked = stops[(f * (stops.size - 1)).roundToInt()]
+                                            if (picked != shutterChoiceNs) {
+                                                shutterChoiceNs = picked
+                                                applyExposure()
+                                                view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                                            }
+                                            keepDialOpen()
+                                        },
+                                        tickCount = stops.size,
+                                        majorEvery = 3,
+                                        dimmed = shutterChoiceNs == null,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    ResetButton("Auto", active = shutterChoiceNs == null, onClick = {
+                                        shutterChoiceNs = null
+                                        applyExposure()
                                         keepDialOpen()
-                                    },
-                                    tickCount = stops.size,
-                                    majorEvery = 3,
-                                    dimmed = isoChoice == null,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                ResetButton("Auto", active = isoChoice == null, onClick = {
-                                    isoChoice = null
-                                    applyExposure()
-                                    keepDialOpen()
-                                })
-                            }
-                            Dial.SHUTTER -> if (support != null) {
-                                val stops = support.shutterStops
-                                val current = shutterChoiceNs ?: exposure?.exposureTimeNs
-                                    ?: (meter.latest ?: FALLBACK_METERED).exposureTimeNs
-                                val index = stops.indices.minBy { abs(ln(stops[it].toDouble() / current)) }
-                                Ruler(
-                                    fraction = index.toFloat() / (stops.size - 1).coerceAtLeast(1),
-                                    onFraction = { f ->
-                                        val picked = stops[(f * (stops.size - 1)).roundToInt()]
-                                        if (picked != shutterChoiceNs) {
-                                            shutterChoiceNs = picked
-                                            applyExposure()
-                                        }
-                                        keepDialOpen()
-                                    },
-                                    tickCount = stops.size,
-                                    majorEvery = 3,
-                                    dimmed = shutterChoiceNs == null,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                ResetButton("Auto", active = shutterChoiceNs == null, onClick = {
-                                    shutterChoiceNs = null
-                                    applyExposure()
-                                    keepDialOpen()
-                                })
+                                    })
+                                }
                             }
                         }
                     }
@@ -593,7 +636,7 @@ fun ViewfinderScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .then(if (dialVisible) Modifier else Modifier.background(PanelBackground, RoundedCornerShape(18.dp)))
+                        .background(PanelBackground.copy(alpha = PanelBackground.alpha * (1f - panelAlpha)), RoundedCornerShape(18.dp))
                         .padding(4.dp),
                 ) {
                     ControlTab(
@@ -633,10 +676,10 @@ fun ViewfinderScreen(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 30.dp)
                     .size(78.dp)
-                    .border(4.dp, Color.White.copy(alpha = 0.45f), CircleShape)
+                    .border(3.dp, Paper, CircleShape)
                     .padding(8.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(if (countdown != null) Amber else Paper)
                     .clickable(enabled = !isCapturing) { onShutter() },
             )
 

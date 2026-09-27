@@ -1,5 +1,18 @@
 package com.fujivibe.ui.review
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
+import com.fujivibe.capture.shootingInfoLine
+import com.fujivibe.ui.theme.Amber
+import com.fujivibe.ui.theme.Paper
+import com.fujivibe.ui.theme.PaperMuted
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -110,6 +123,8 @@ fun ReviewScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val swipeThresholdPx = with(LocalDensity.current) { SwipeThreshold.toPx() }
+    // What the shot was taken with, as a camera's playback display shows it.
+    val shootingInfo = remember { captureStore.shootingInfo()?.let(::shootingInfoLine) }
 
     Box(
         modifier
@@ -144,18 +159,50 @@ fun ReviewScreen(
             val shownSelection = displayed.cycle.current
             val isSaved = shownSelection in savedLooks
 
+            fun close() {
+                captureStore.discard()
+                onClose()
+            }
+
+            fun export() {
+                isExporting = true
+                snackbarHostState.currentSnackbarData?.dismiss()
+                coroutineScope.launch {
+                    // Decode is a blocking file read at full photo resolution; keep it off
+                    // the coroutine's default dispatcher used by the render below.
+                    val selection = shownSelection
+                    // A full-res capture's Bitmap and its PixelImage copy are both
+                    // ~tens of MB; recycle the Bitmap the moment its pixels are copied
+                    // out instead of waiting on the GC to reclaim it mid-export.
+                    val fullResSource = withContext(Dispatchers.IO) {
+                        val bitmap = captureStore.loadFullResolution() ?: return@withContext null
+                        bitmap.toPixelImage().also { bitmap.recycle() }
+                    }
+                    val saved = fullResSource != null &&
+                        galleryWriter.save(
+                            renderPipeline.render(fullResSource, selection),
+                            metadataFrom = captureStore.metadataSource(),
+                        )
+
+                    isExporting = false
+                    // The Capture is kept either way: on success so more looks can be
+                    // saved from it, on failure so Export can be retried.
+                    if (saved) savedLooks += selection
+                    snackbarHostState.showSnackbar(
+                        if (saved) "Saved to Pictures/FujiVibe" else "Export failed. Tap Export to retry."
+                    )
+                }
+            }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
             ) {
-                Text(
-                    text = if (isSaved) "${displayed.cycle.label}  ✓" else displayed.cycle.label,
-                    color = Color.White,
-                )
+                LookTitle(label = displayed.cycle.label, saved = isSaved)
                 PositionDots(
                     position = displayed.cycle.position,
                     count = displayed.cycle.count,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = 10.dp),
                 )
             }
 
@@ -165,72 +212,84 @@ fun ReviewScreen(
 
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp),
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 132.dp),
             )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
-                modifier = Modifier.align(Alignment.BottomCenter).padding(32.dp),
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
             ) {
-                Button(
-                    onClick = {
-                        captureStore.discard()
-                        onClose()
-                    },
-                    enabled = !isExporting,
-                ) {
-                    Text(savedLooks.closeActionLabel)
-                }
+                shootingInfo?.let { Text(it, color = PaperMuted, fontSize = 14.sp) }
 
-                // A saved look has nothing left to export (its label already carries the
-                // checkmark), so the close button stands alone, centered.
-                if (!isSaved) Button(
-                    enabled = !isExporting && displayed.bitmap != null && savedLooks.canExport(shownSelection),
-                    onClick = {
-                        isExporting = true
-                        snackbarHostState.currentSnackbarData?.dismiss()
-                        coroutineScope.launch {
-                            // Decode is a blocking file read at full photo resolution; keep it off
-                            // the coroutine's default dispatcher used by the render below.
-                            val selection = shownSelection
-                            // A full-res capture's Bitmap and its PixelImage copy are both
-                            // ~tens of MB; recycle the Bitmap the moment its pixels are copied
-                            // out instead of waiting on the GC to reclaim it mid-export.
-                            val fullResSource = withContext(Dispatchers.IO) {
-                                val bitmap = captureStore.loadFullResolution() ?: return@withContext null
-                                bitmap.toPixelImage().also { bitmap.recycle() }
-                            }
-                            val saved = fullResSource != null &&
-                                galleryWriter.save(renderPipeline.render(fullResSource, selection))
-
-                            isExporting = false
-                            // The Capture is kept either way: on success so more looks can be
-                            // saved from it, on failure so Export can be retried.
-                            if (saved) savedLooks += selection
-                            snackbarHostState.showSnackbar(
-                                if (saved) "Saved to Pictures/FujiVibe" else "Export failed - tap Export to retry"
-                            )
+                // A saved look has nothing left to export (its title already carries the
+                // checkmark), so Done stands alone, centered, as the one strong button.
+                if (isSaved) {
+                    PrimaryButton(text = savedLooks.closeActionLabel, enabled = !isExporting, onClick = ::close)
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        TextButton(onClick = ::close, enabled = !isExporting) {
+                            Text(savedLooks.closeActionLabel, color = Paper, fontSize = 16.sp)
                         }
-                    },
-                ) {
-                    Text("Export")
+                        PrimaryButton(
+                            text = "Export",
+                            enabled = !isExporting && displayed.bitmap != null && savedLooks.canExport(shownSelection),
+                            onClick = ::export,
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/** A row of dots, one per [ReviewCycle] entry, with the current [position] filled in. */
+/** The look's name, its "(Pixel)" suffix muted, and an amber check once it's been saved. */
+@Composable
+private fun LookTitle(label: String, saved: Boolean) {
+    val match = Regex("""^(.*?)(\s*\(.*\))$""").find(label)
+    val name = match?.groupValues?.get(1) ?: label
+    val suffix = match?.groupValues?.get(2).orEmpty()
+    Text(
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = Paper, fontWeight = FontWeight.Medium)) { append(name) }
+            withStyle(SpanStyle(color = PaperMuted)) { append(suffix) }
+            if (saved) withStyle(SpanStyle(color = Amber)) { append("  ✓") }
+        },
+        fontSize = 20.sp,
+    )
+}
+
+/** The screen's one strong action, filled in amber. */
+@Composable
+private fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(24.dp),
+        contentPadding = PaddingValues(horizontal = 32.dp, vertical = 10.dp),
+    ) {
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+/** A row of dots, one per [ReviewCycle] entry, with the current [position] in amber. */
 @Composable
 private fun PositionDots(position: Int, count: Int, modifier: Modifier = Modifier) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = modifier) {
+    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = modifier) {
         repeat(count) { index ->
-            val dot = Modifier.size(8.dp).clip(CircleShape)
+            val dot = Modifier.size(7.dp).clip(CircleShape)
             Box(
                 if (index == position) {
-                    dot.background(Color.White)
+                    dot.background(Amber)
                 } else {
-                    dot.border(1.dp, Color.White, CircleShape)
+                    dot.border(1.dp, PaperMuted, CircleShape)
                 }
             )
         }
