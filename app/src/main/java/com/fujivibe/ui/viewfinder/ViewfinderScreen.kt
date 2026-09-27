@@ -498,7 +498,14 @@ fun ViewfinderScreen(
                     .clickable(enabled = !isCapturing) {
                         isCapturing = true
                         val outputFile = captureStore.fileForNewCapture()
-                        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
+                        // Selfies are saved as the mirrored preview showed them, like Google Camera's
+                        // default "mirror selfies".
+                        val metadata = ImageCapture.Metadata().apply {
+                            isReversedHorizontal = lensFacing == CameraSelector.LENS_FACING_FRONT
+                        }
+                        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile)
+                            .setMetadata(metadata)
+                            .build()
                         imageCapture.takePicture(
                             outputOptions,
                             ContextCompat.getMainExecutor(context),
