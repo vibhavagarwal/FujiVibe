@@ -213,8 +213,6 @@ fun ViewfinderScreen(
         )
 
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
-            ExtensionsDiagnostic(modifier = Modifier.align(Alignment.TopCenter).padding(top = 8.dp))
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
