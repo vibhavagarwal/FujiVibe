@@ -35,24 +35,11 @@ android {
         compose = true
     }
 
-    // Test-only from the LUT-licensing perspective, but bundled into every build type here,
-    // since (unlike :render's tests) the running app genuinely needs these to render Review
-    // previews. Loaded from the developer's local, gitignored copy of the abpy pack rather than
-    // committed source — see ADR 0003/0004 and render/build.gradle.kts for the same pattern.
-    // AGP's AndroidSourceDirectorySet has no include()/exclude() filter, so this pulls in the
-    // whole "provia conversion luts" folder rather than just the two v1 files; the extras
-    // (Bleach Bypass, DisplayP3 variants) sit unused since ResourceLutLoader only ever asks for
-    // names in the FilmSimulation registry.
-    //
-    // derived-luts/ is different: it's FujiVibe's own committed derivative work (see ADR 0005),
-    // not the gitignored third-party pack, so it's always present regardless of local setup.
+    // Every FilmSimulation reads a committed, derived LUT from derived-luts/ (ADR 0005/0007/0010);
+    // the unmodified third-party pack in gitignored raw-assets/ is only needed to re-bake them,
+    // so it is not bundled. derived-luts/LICENSE.md (the CC BY-NC-SA attribution) ships with them.
     sourceSets {
         getByName("main") {
-            resources.srcDir(
-                rootProject.layout.projectDirectory.dir(
-                    "raw-assets/abpy-fujifilm-camera-profiles/provia conversion luts"
-                )
-            )
             resources.srcDir(rootProject.layout.projectDirectory.dir("derived-luts"))
         }
     }

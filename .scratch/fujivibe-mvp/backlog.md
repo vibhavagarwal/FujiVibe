@@ -64,12 +64,10 @@ Raised 2026-09-26: wants a Pixel-style Portrait option on the Viewfinder. Not st
 
 **Decision (2026-09-26): no fallback.** Building our own segmentation-based blur is explicitly ruled out as not worth the effort or need (it would mean a new model dependency, weaker edge quality than Google's, and added full-resolution Export time). If the on-device check shows the Pixel 10 Pro doesn't offer `BOKEH`, portrait mode is simply dropped, not re-approached another way.
 
-### Status of section 4 and item 5 (2026-09-26, end of session)
+### Status of section 4 and item 5 (2026-09-26, second session)
 
-Implemented and unit-tested, NOT yet verified on the phone (emulator was too slow/unreliable to check the slider or Review buttons):
-- Item 1: both Review bottom buttons now share one fixed width, so the pair is symmetric about center. This is an interpretation of "Done is not centered"; if the user wanted Done alone centered with Export elsewhere, redo the layout.
-- Item 2: Viewfinder resets zoom to 1x every time it binds the camera (CameraX otherwise keeps the last zoom).
-- Item 3: the zoom readout is always shown ("1x" at 1x, "2.3x", "2x").
-- Item 4: log-scale zoom slider above the readout; appears while pinching or after tapping the readout, hides after 2.5s idle.
-- Item 5 (rename to "Koda64 (Pixel)") and item 6 (review Koda64 on more photos): not started.
-- Portrait check: a throwaway `ExtensionsDiagnostic` line at the top of the Viewfinder shows BOKEH/HDR/NIGHT/FACE_RETOUCH/AUTO availability (also logged under tag ExtensionsDiagnostic). Emulator says all "no" (meaningless for the phone). Read the result on the Pixel 10 Pro, then delete ExtensionsDiagnostic.kt, its call in ViewfinderScreen, and the camera-extensions dependency.
+- Item 1: **DONE.** The equal-width button pair was the wrong reading (and wrapped "Discard"), so it was reverted. The real problem: once the shown look was saved, Export became a near-invisible disabled "Saved" button, leaving Done visually off-center. Export is now hidden for a saved look, so Done stands alone, centered; swiping to an unsaved look brings Export back. Built and installed; awaiting the user's on-device check.
+- Items 2-4: **DONE, verified on the Pixel 10 Pro.** Zoom resets to 1x whenever the Viewfinder binds; the readout always shows ("1x"); log-scale zoom slider appears on pinch or readout tap and hides after 2.5s.
+- Item 5: **DONE.** Display name is "Koda64 (Pixel)"; the LUT file is renamed to `Koda64 Pixel sRGB.cube` like its siblings (bytes unchanged). Code identifiers (`KODA64_PIXEL`, `Koda64PixelCorrection`, `BakeKoda64PixelLut`) kept, since they already follow the Classic Neg. naming pattern.
+- Item 6 (review Koda64 on real Pixel photos): **not started.**
+- Section 5 (portrait mode): **DROPPED.** The on-device check reported `BOKEH=no HDR=no NIGHT=yes FACE_RETOUCH=no AUTO=no` on the Pixel 10 Pro's back camera. Per the no-fallback decision, portrait mode is dropped; the diagnostic and the camera-extensions dependency were removed.
