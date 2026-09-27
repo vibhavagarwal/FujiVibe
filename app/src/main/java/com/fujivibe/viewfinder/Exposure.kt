@@ -73,3 +73,17 @@ fun resolveExposure(
         )
     }
 }
+
+/**
+ * How much brighter (+) or darker (-) [exposure] makes the photo than the camera's own
+ * [metered] choice did, in stops (each stop doubles or halves the light).
+ */
+fun exposureOffsetStops(exposure: Exposure, metered: Exposure): Double =
+    kotlin.math.log2(
+        (exposure.iso.toDouble() * exposure.exposureTimeNs) /
+            (metered.iso.toDouble() * metered.exposureTimeNs)
+    )
+
+/** "+1.0 EV" / "-0.7 EV", or "0 EV" when within a twentieth of a stop of the metered brightness. */
+fun brightnessReadout(offsetStops: Double): String =
+    if (kotlin.math.abs(offsetStops) < 0.05) "0 EV" else String.format(Locale.US, "%+.1f EV", offsetStops)

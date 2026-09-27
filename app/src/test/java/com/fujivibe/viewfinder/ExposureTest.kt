@@ -72,4 +72,18 @@ class ExposureTest {
         // 1/8000 would need ISO 32000; the camera tops out at 6400.
         assertEquals(6400, resolveExposure(null, 125_000L, metered, isoRange, timeRange)!!.iso)
     }
+
+    @Test
+    fun `brightness offset counts stops against the metered exposure`() {
+        assertEquals(1.0, exposureOffsetStops(Exposure(800, 10_000_000L), metered), 1e-9)
+        assertEquals(-2.0, exposureOffsetStops(Exposure(400, 2_500_000L), metered), 1e-9)
+        assertEquals(0.0, exposureOffsetStops(Exposure(800, 5_000_000L), metered), 1e-9)
+    }
+
+    @Test
+    fun `brightness readout is signed with one decimal and plain zero`() {
+        assertEquals("+1.0 EV", brightnessReadout(1.0))
+        assertEquals("-0.7 EV", brightnessReadout(-0.7))
+        assertEquals("0 EV", brightnessReadout(0.02))
+    }
 }
