@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import android.Manifest
 import android.content.Context
+import android.content.res.Configuration
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -89,6 +90,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
@@ -243,6 +245,7 @@ fun ViewfinderScreen(
     var countdown by remember { mutableStateOf<Int?>(null) }
     var countdownJob by remember { mutableStateOf<Job?>(null) }
     val view = LocalView.current
+    val sideways = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val shutterBlink = remember { Animatable(0f) }
 
     // Level line: the horizon's on-screen angle from the gravity sensor, only while switched on.
@@ -535,7 +538,8 @@ fun ViewfinderScreen(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 128.dp)
+                    // Sideways, the shutter moves to the right edge, so the panel can sit lower.
+                    .padding(start = 16.dp, end = 16.dp, bottom = if (sideways) 16.dp else 128.dp)
                     // Capped so a sideways screen doesn't stretch the ruler edge to edge.
                     .widthIn(max = 480.dp)
                     .fillMaxWidth()
@@ -676,8 +680,11 @@ fun ViewfinderScreen(
             // Shutter: a white disc inside a faint ring.
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 30.dp)
+                    // Upright: bottom center. Sideways: right edge, centered, under the thumb.
+                    .then(
+                        if (sideways) Modifier.align(Alignment.CenterEnd).padding(end = 28.dp)
+                        else Modifier.align(Alignment.BottomCenter).padding(bottom = 30.dp)
+                    )
                     .size(78.dp)
                     .border(3.dp, Paper, CircleShape)
                     .padding(8.dp)
@@ -690,9 +697,10 @@ fun ViewfinderScreen(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 43.dp)
-                        .offset(x = 108.dp)
+                        .then(
+                            if (sideways) Modifier.align(Alignment.CenterEnd).padding(end = 41.dp).offset(y = 104.dp)
+                            else Modifier.align(Alignment.BottomCenter).padding(bottom = 43.dp).offset(x = 108.dp)
+                        )
                         .size(52.dp)
                         .clip(CircleShape)
                         .background(PanelBackground)

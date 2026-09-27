@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -252,9 +252,7 @@ fun ReviewScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.widthIn(max = BottomBarMaxWidth).fillMaxWidth(),
                     ) {
-                        TextButton(onClick = ::close, enabled = !isExporting) {
-                            Text(savedLooks.closeActionLabel, color = Paper, fontSize = 16.sp)
-                        }
+                        SecondaryButton(text = savedLooks.closeActionLabel, enabled = !isExporting, onClick = ::close)
                         PrimaryButton(
                             text = "Export",
                             enabled = !isExporting && displayed.bitmap != null && savedLooks.canExport(shownSelection),
@@ -293,6 +291,20 @@ private fun PrimaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
         contentPadding = PaddingValues(horizontal = 32.dp, vertical = 10.dp),
     ) {
         Text(text, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+/** A quiet companion to [PrimaryButton]: same shape, on a faint translucent pill. */
+@Composable
+private fun SecondaryButton(text: String, enabled: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(24.dp),
+        contentPadding = PaddingValues(horizontal = 28.dp, vertical = 10.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Paper.copy(alpha = 0.14f), contentColor = Paper),
+    ) {
+        Text(text, fontSize = 16.sp)
     }
 }
 
