@@ -8,13 +8,13 @@ A switch-camera button next to the shutter swaps between back and selfie cameras
 
 **Out of scope (decided 2026-09-27):** aperture (fixed on phone lenses), Temp/Tint white balance, portrait blur (no BOKEH on Pixel 10 Pro), video settings.
 
-**Status:** in progress
+**Status:** built; controls and selfie checked on the Pixel 10 Pro (2026-09-27). Layout reworked to option A: fold-away tab row + tick ruler with Auto reset, "A" badge on camera-filled values, EV brightness indicator. Selfies saved mirrored like the preview.
 
-- [ ] ISO dial: Auto + supported values; manual choice changes the Capture, not just the preview
-- [ ] Shutter dial: Auto + supported values up to 1s
-- [ ] One manual, other Auto: the other is derived from the last metered exposure and shown on its readout
-- [ ] Both back on Auto returns to the camera's automatic exposure
-- [ ] Switch-camera button; selfie choice survives a trip through Review; hidden if there's no front camera
-- [ ] Zoom, ISO and Shutter reset on every camera bind
-- [ ] Unit tests for the stop lists, readouts and exposure pairing
-- [ ] Verified on the Pixel 10 Pro (both cameras)
+- [x] ISO dial: Auto + supported values; manual choice changes the Capture, not just the preview
+- [x] Shutter dial: Auto + supported values up to 1s
+- [x] One manual, other Auto: the other is derived from the last metered exposure and shown on its readout
+- [x] Both back on Auto returns to the camera's automatic exposure
+- [x] Switch-camera button; selfie choice survives a trip through Review; hidden if there's no front camera
+- [x] Zoom, ISO and Shutter reset on every camera bind
+- [x] Unit tests for the stop lists, readouts and exposure pairing
+- [x] Verified on the Pixel 10 Pro (both cameras)
