@@ -13,7 +13,7 @@ Film looks made for Fujifilm cameras tend to look flat or muddy on phone photos,
 ## How it works
 
 1. **Shoot:** back or selfie camera, with zoom, ISO and shutter speed on one fold-away ruler. Leave ISO or shutter on Auto and the camera fills it in; set both for full manual, with a brightness readout (e.g. `+1.0 EV`). The top bar holds a grid, a level line, a 3s/10s self-timer and the photo shape: 4:3, 3:2 (Fujifilm's native shape), 1:1 or 16:9.
-2. **Review:** swipe between *Original*, *Classic Neg. (Pixel)*, *Nostalgic Neg. (Pixel)* and *Koda64 (Pixel)*. A line under the photo shows what it was shot with, e.g. `ISO 400 · 1/250 · 1x · 3:2`.
+2. **Review:** swipe between the original photo and each film look. A line under the photo shows what it was shot with, e.g. `ISO 400 · 1/250 · 1x · 3:2`.
 3. **Export:** save the look you're on at full resolution to `Pictures/FujiVibe`, with the photo's date and camera settings kept. You can save several looks from the same shot.
 4. **Done:** back to the camera, ready for the next shot.
 
@@ -22,7 +22,6 @@ No download is published yet. Build it with the commands below and install it on
 ## What makes it different
 
 - **Looks adjusted for phone photos.** Each look combines the original film-look color table with extra corrections (contrast, tint, color shifts), all merged into a single table. The app does one quick lookup per pixel, and retuning a look means changing a few numbers.
-- **A Kodachrome-inspired look.** *Koda64 (Pixel)* approximates a popular Kodachrome 64 recipe: warm light, deep blue skies, rich color and gentle highlights, with skin tones kept natural.
 - **Choose after you shoot.** You compare looks on the actual photo instead of guessing from a live preview.
 - **Camera-like controls.** Manual ISO and shutter speed with an Auto option for each, a level line, and a 3:2 frame, presented like a camera's own display.
 
@@ -41,7 +40,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 To preview any photo through the looks on a computer, without a phone:
 
 ```bash
-./gradlew :render:previewFilmSimulation --args="in.jpg out.jpg ORIGINAL,CLASSIC_NEG_PIXEL,NOSTALGIC_NEG_PIXEL,KODA64_PIXEL"
+./gradlew :render:previewFilmSimulation --args="in.jpg out.jpg ORIGINAL,CLASSIC_NEG_PIXEL,NOSTALGIC_NEG_PIXEL"
 ```
 
 The project has two parts: a color engine (`render/`) that is plain Kotlin and fully unit-tested, and the Android app (`app/`), built with Jetpack Compose and CameraX.
@@ -56,7 +55,7 @@ The project has two parts: a color engine (`render/`) that is plain Kotlin and f
 
 ## Roadmap
 
-- Fine-tune *Koda64 (Pixel)* on more real Pixel photos.
+- Fine-tune the looks on more real Pixel photos.
 - Faster saving.
 - A downloadable release.
 - Later ideas: an in-app gallery, telling close-up portraits from landscapes automatically, and cropping to the main face.
