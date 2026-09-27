@@ -4,6 +4,10 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CaptureRequest
@@ -12,8 +16,10 @@ import android.hardware.camera2.TotalCaptureResult
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import android.util.Rational
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import android.view.Surface
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
@@ -28,6 +34,8 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
+import androidx.camera.core.ViewPort
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -59,6 +67,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,6 +83,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.fujivibe.capture.CaptureStore
+import com.fujivibe.viewfinder.AspectChoice
+import com.fujivibe.viewfinder.TimerChoice
+import com.fujivibe.viewfinder.ViewfinderSettings
+import com.fujivibe.viewfinder.horizonAngle
 import com.fujivibe.viewfinder.Exposure
 import com.fujivibe.viewfinder.MAX_MANUAL_EXPOSURE_NS
 import com.fujivibe.viewfinder.isoReadout
@@ -88,6 +101,8 @@ import com.fujivibe.viewfinder.zoomToSliderFraction
 import kotlin.coroutines.resume
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 private const val TAG = "ViewfinderScreen"
@@ -194,13 +209,47 @@ fun ViewfinderScreen(
         return
     }
 
-    // Locked to the same aspect ratio as the saved capture (below) so what's
-    // framed in the preview matches what actually gets exported — otherwise
-    // a full-screen preview crops more of the frame than the photo does.
-    val imageCapture = remember {
-        ImageCapture.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3).build()
-    }
+    // Grid, level, timer and aspect ratio persist across launches; everything else resets.
+    val settings = remember { ViewfinderSettings(context) }
+    var gridOn by remember { mutableStateOf(settings.gridOn) }
+    var levelOn by remember { mutableStateOf(settings.levelOn) }
+    var timer by remember { mutableStateOf(settings.timer) }
+    var aspect by remember { mutableStateOf(settings.aspect) }
+
+    // Rebuilt on every bind, since its stream shape follows the chosen aspect ratio.
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var isCapturing by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    var countdown by remember { mutableStateOf<Int?>(null) }
+    var countdownJob by remember { mutableStateOf<Job?>(null) }
+
+    // Level line: the horizon's on-screen angle from the gravity sensor, only while switched on.
+    var horizon by remember { mutableStateOf<Float?>(null) }
+    DisposableEffect(levelOn) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
+            ?: sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                val rotation = when (ContextCompat.getDisplayOrDefault(context).rotation) {
+                    Surface.ROTATION_90 -> 90
+                    Surface.ROTATION_180 -> 180
+                    Surface.ROTATION_270 -> 270
+                    else -> 0
+                }
+                horizon = horizonAngle(event.values[0], event.values[1], event.values[2], rotation)
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+        }
+        if (levelOn && sensor != null) {
+            sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+        }
+        onDispose {
+            sensorManager.unregisterListener(listener)
+            horizon = null
+        }
+    }
     // Real camera zoom (CameraControl), so the Capture itself is zoomed - not a preview-only crop.
     var camera by remember { mutableStateOf<Camera?>(null) }
     var hasFrontCamera by remember { mutableStateOf(false) }
@@ -307,17 +356,31 @@ fun ViewfinderScreen(
         }
     }
 
-    // (Re)binds whenever the chosen camera changes. Every bind starts clean: zoom 1x, ISO and
-    // shutter on Auto — CameraX would otherwise carry the last zoom and Camera2 options over.
-    LaunchedEffect(lensFacing) {
+    // (Re)binds whenever the chosen camera or aspect ratio changes. Every bind starts clean: zoom
+    // 1x, ISO and shutter on Auto — CameraX would otherwise carry the last zoom and Camera2
+    // options over.
+    LaunchedEffect(lensFacing, aspect) {
         val cameraProvider = awaitCameraProvider(context)
         hasFrontCamera = cameraProvider.hasCameraSafely(CameraSelector.DEFAULT_FRONT_CAMERA)
         val requested = CameraSelector.Builder().requireLensFacing(lensFacing).build()
         val selector = if (cameraProvider.hasCameraSafely(requested)) requested else CameraSelector.DEFAULT_BACK_CAMERA
 
-        val previewBuilder = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
+        // Preview and Capture share one stream shape so what's framed is what's saved: 16:9 uses
+        // the sensor's 16:9 mode, everything else its full 4:3. 3:2 and 1:1 are then cropped
+        // from 4:3 by a ViewPort, which CameraX applies to the preview and the saved JPEG alike.
+        val streamRatio = if (aspect == AspectChoice.SIXTEEN_NINE) AspectRatio.RATIO_16_9 else AspectRatio.RATIO_4_3
+        val previewBuilder = Preview.Builder().setTargetAspectRatio(streamRatio)
         Camera2Interop.Extender(previewBuilder).setSessionCaptureCallback(meter.callback)
         val preview = previewBuilder.build().also { it.setSurfaceProvider(previewView.surfaceProvider) }
+        val capture = ImageCapture.Builder().setTargetAspectRatio(streamRatio).build()
+        val useCases = UseCaseGroup.Builder().addUseCase(preview).addUseCase(capture)
+        if (aspect == AspectChoice.THREE_TWO || aspect == AspectChoice.ONE_ONE) {
+            val rotation = ContextCompat.getDisplayOrDefault(context).rotation
+            val sideways = rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270
+            // ViewPort's shape is width:height as the screen shows it.
+            val shape = if (sideways) Rational(aspect.long, aspect.short) else Rational(aspect.short, aspect.long)
+            useCases.setViewPort(ViewPort.Builder(shape, rotation).build())
+        }
 
         isoChoice = null
         shutterChoiceNs = null
@@ -325,7 +388,8 @@ fun ViewfinderScreen(
         meter.latest = null
         dialVisible = false
         cameraProvider.unbindAll()
-        val bound = cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, imageCapture)
+        val bound = cameraProvider.bindToLifecycle(lifecycleOwner, selector, useCases.build())
+        imageCapture = capture
         Camera2CameraControl.from(bound.cameraControl).clearCaptureRequestOptions()
         bound.cameraControl.setZoomRatio(1f)
         zoomRatio = 1f
@@ -333,10 +397,88 @@ fun ViewfinderScreen(
         camera = bound
     }
 
+    fun takePhoto() {
+        val capture = imageCapture ?: return
+        isCapturing = true
+        val outputFile = captureStore.fileForNewCapture()
+        // Selfies are saved as the mirrored preview showed them, like Google Camera's
+        // default "mirror selfies".
+        val metadata = ImageCapture.Metadata().apply {
+            isReversedHorizontal = lensFacing == CameraSelector.LENS_FACING_FRONT
+        }
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile)
+            .setMetadata(metadata)
+            .build()
+        capture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(context),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    isCapturing = false
+                    onCaptured()
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    isCapturing = false
+                    Log.e(TAG, "Capture failed", exception)
+                }
+            },
+        )
+    }
+
+    /** Shutter tap: fire now, or start the self-timer; a tap during the countdown cancels it. */
+    fun onShutter() {
+        if (countdown != null) {
+            countdownJob?.cancel()
+            countdown = null
+            return
+        }
+        if (timer == TimerChoice.OFF) {
+            takePhoto()
+            return
+        }
+        countdownJob = coroutineScope.launch {
+            for (left in timer.seconds downTo 1) {
+                countdown = left
+                delay(1000)
+            }
+            countdown = null
+            takePhoto()
+        }
+    }
+
     Box(modifier.fillMaxSize()) {
         AndroidView(modifier = Modifier.fillMaxSize(), factory = { previewView })
+        FrameOverlay(aspect = aspect, grid = gridOn, horizonAngle = if (levelOn) horizon else null)
+        countdown?.let { Countdown(it) }
 
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
+            TopBar(
+                gridOn = gridOn,
+                onGridToggle = {
+                    gridOn = !gridOn
+                    settings.gridOn = gridOn
+                },
+                levelOn = levelOn,
+                onLevelToggle = {
+                    levelOn = !levelOn
+                    settings.levelOn = levelOn
+                },
+                timer = timer,
+                onTimerNext = {
+                    timer = timer.next()
+                    settings.timer = timer
+                },
+                aspect = aspect,
+                onAspectNext = {
+                    if (countdown == null && !isCapturing) {
+                        aspect = aspect.next()
+                        settings.aspect = aspect
+                    }
+                },
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+
             val support = manualSupport
             // null while fully on Auto; otherwise what the camera is actually told to use.
             val exposure = support?.let { currentExposure(it) }
@@ -495,33 +637,7 @@ fun ViewfinderScreen(
                     .padding(8.dp)
                     .clip(CircleShape)
                     .background(Color.White)
-                    .clickable(enabled = !isCapturing) {
-                        isCapturing = true
-                        val outputFile = captureStore.fileForNewCapture()
-                        // Selfies are saved as the mirrored preview showed them, like Google Camera's
-                        // default "mirror selfies".
-                        val metadata = ImageCapture.Metadata().apply {
-                            isReversedHorizontal = lensFacing == CameraSelector.LENS_FACING_FRONT
-                        }
-                        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile)
-                            .setMetadata(metadata)
-                            .build()
-                        imageCapture.takePicture(
-                            outputOptions,
-                            ContextCompat.getMainExecutor(context),
-                            object : ImageCapture.OnImageSavedCallback {
-                                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                    isCapturing = false
-                                    onCaptured()
-                                }
-
-                                override fun onError(exception: ImageCaptureException) {
-                                    isCapturing = false
-                                    Log.e(TAG, "Capture failed", exception)
-                                }
-                            },
-                        )
-                    },
+                    .clickable(enabled = !isCapturing) { onShutter() },
             )
 
             if (hasFrontCamera) {
@@ -534,7 +650,7 @@ fun ViewfinderScreen(
                         .size(52.dp)
                         .clip(CircleShape)
                         .background(PanelBackground)
-                        .clickable(enabled = !isCapturing) {
+                        .clickable(enabled = !isCapturing && countdown == null) {
                             onLensFacingChange(
                                 if (lensFacing == CameraSelector.LENS_FACING_FRONT) CameraSelector.LENS_FACING_BACK
                                 else CameraSelector.LENS_FACING_FRONT
