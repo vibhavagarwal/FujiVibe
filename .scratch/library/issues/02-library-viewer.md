@@ -1,7 +1,7 @@
 # 02: Full-screen viewer with pinch-zoom and swipe
 
-**Status:** built and checked on the Pixel 10 Pro (open, swipe, double-tap zoom, back; Review re-tested after the refactor).
-Pinch gestures can't be driven over adb, so the two-finger pinch in the viewer is awaiting the user's check. Blocked by: 01 (done). Blocks: 03.
+**Status:** done. Checked on the Pixel 10 Pro by the user (2026-10-10), including the two-finger pinch, swipe feel and the chrome
+fading while zoomed ("all good"). Blocked by: 01 (done). Blocks: 03 (done).
 
 Tap a photo in the grid to see it full screen.
 
@@ -18,7 +18,7 @@ Tap a photo in the grid to see it full screen.
   to the photo the viewer ended on if that isn't on screen
 - [x] Rotation keeps the same photo: the current id is saved with the screen, and the list is reloaded if the process lost it
 - [x] Library tile look label changed to an acronym with no background (CN, NN, K, CH, O), via `FilmSimulation.shortName`
-- [ ] User check: pinch in the viewer; swipe feel; whether the chrome fading while zoomed is what they want
+- [x] User check: pinch in the viewer; swipe feel; the chrome fading while zoomed. All good
 
 ## Notes
 - Charcoal's acronym is "CH" (the user supplied CN, NN, K, O); a lone "C" sat too close to "CN".

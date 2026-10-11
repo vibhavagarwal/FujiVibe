@@ -1,6 +1,7 @@
 # Library Spec: browse, zoom and delete the photos FujiVibe has saved
 
-**Status:** decisions made 2026-10-10; tickets cut in `issues/`. Slice 00 (file naming) is already built; 01-03 are not started.
+**Status:** done. All four tickets (00-03) are built and were checked on the Pixel 10 Pro on 2026-10-10 (delete checked by the user,
+except the system trash, by choice).
 Grew out of backlog section 6, item 1 ("In-app gallery"), and the pinch-zoom work (`.scratch/review-zoom/spec.md`).
 
 ## Problem Statement
@@ -48,10 +49,10 @@ from an icon in the Viewfinder's top bar; back returns to the Viewfinder.
 
 ## Tickets
 - `00` Name saved files `<look>_<datetime>.jpg` and read the look back: **done**.
-- `01` Library grid and entry point: **built and checked on the device** (awaiting the user's check with access granted).
-- `02` Full-screen viewer with pinch-zoom and swipe: **built and checked on the device** (pinch awaiting the user's check).
+- `01` Library grid and entry point: **done**, checked on the device by the user.
+- `02` Full-screen viewer with pinch-zoom and swipe: **done**, checked on the device by the user.
   Grid look labels are now acronyms with no background (`FilmSimulation.shortName`: CN, NN, K, CH; O for Original).
-- `03` Delete: **built and unit-tested; deleting a FujiVibe-owned photo confirmed on the device**, Google Photos-owned and edge cases still to check (see the ticket).
+- `03` Delete: **done**, checked on the device by the user (system trash not checked, by choice).
 
 ## Out of Scope
 Share; editing or re-rendering a saved photo with another look (the Capture is deleted on Done, so there is nothing to
