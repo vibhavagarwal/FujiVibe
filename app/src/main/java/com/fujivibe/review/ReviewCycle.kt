@@ -3,6 +3,18 @@ package com.fujivibe.review
 import com.fujivibe.render.FilmSimulation
 import com.fujivibe.render.RenderSelection
 
+/** How a look is named on screen: "Original", or the Film Simulation's display name. */
+fun RenderSelection.displayLabel(): String = when (this) {
+    RenderSelection.Original -> "Original"
+    is RenderSelection.Simulation -> filmSimulation.displayName
+}
+
+/** The acronym for a look: "O" for Original, else the Film Simulation's short name (e.g. "CN"). */
+fun RenderSelection.shortLabel(): String = when (this) {
+    RenderSelection.Original -> "O"
+    is RenderSelection.Simulation -> filmSimulation.shortName
+}
+
 /**
  * Tracks which entry of Review's ordered cycle — Original, then each launch [FilmSimulation] in
  * registry order — is currently shown. Immutable: [next] and [previous] return the new state
@@ -17,11 +29,7 @@ class ReviewCycle private constructor(private val index: Int) {
 
     val count: Int get() = ENTRIES.size
 
-    val label: String
-        get() = when (val entry = current) {
-            RenderSelection.Original -> "Original"
-            is RenderSelection.Simulation -> entry.filmSimulation.displayName
-        }
+    val label: String get() = current.displayLabel()
 
     fun next(): ReviewCycle = ReviewCycle((index + 1) % ENTRIES.size)
 

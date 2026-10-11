@@ -76,6 +76,6 @@ Raised 2026-09-26: wants a Pixel-style Portrait option on the Viewfinder. Not st
 
 Recorded only. No design, feasibility check or development until the user picks them up.
 
-1. **In-app gallery.** Browse photos taken with FujiVibe inside the app.
+1. **In-app gallery.** Browse photos taken with FujiVibe inside the app. **Planned 2026-10-10, now called the Library:** see `.scratch/library/spec.md` (decisions made, tickets 01-03 cut; ticket 00, file naming, done).
 2. **Automatic shot-type detection.** Tell whether a photo is a close-up portrait or a landscape shot.
 3. **Automatic crop to the main face.** Crop the photo around the main face in the frame. The user will explain the intended behavior later; don't design it before then.

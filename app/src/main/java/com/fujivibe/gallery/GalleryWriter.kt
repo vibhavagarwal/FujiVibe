@@ -1,6 +1,7 @@
 package com.fujivibe.gallery
 
 import com.fujivibe.render.PixelImage
+import com.fujivibe.render.RenderSelection
 import java.io.File
 
 /**
@@ -13,7 +14,8 @@ interface GalleryWriter {
     /**
      * Returns true on a confirmed successful save, false on failure — never throws — so a caller
      * can leave the temp Capture in place and let the user retry rather than losing the shot.
+     * [selection] is the look [image] was rendered with; it becomes the start of the file's name.
      * Camera metadata (date, ISO, shutter, camera model) is copied from [metadataFrom] when given.
      */
-    suspend fun save(image: PixelImage, metadataFrom: File? = null): Boolean
+    suspend fun save(image: PixelImage, selection: RenderSelection, metadataFrom: File? = null): Boolean
 }

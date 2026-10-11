@@ -51,6 +51,16 @@ tasks.register<JavaExec>("bakeKoda64PixelLut") {
     workingDir = rootProject.projectDir
 }
 
+// ./gradlew :render:bakeCharcoalLut
+// Regenerates derived-luts/Charcoal sRGB.cube from CharcoalCorrection's current constants.
+tasks.register<JavaExec>("bakeCharcoalLut") {
+    group = "application"
+    description = "Regenerates derived-luts/Charcoal sRGB.cube from current CharcoalCorrection constants."
+    mainClass.set("com.fujivibe.render.tools.BakeCharcoalLut")
+    classpath = sourceSets.main.get().runtimeClasspath
+    workingDir = rootProject.projectDir
+}
+
 sourceSets {
     val proviaConversionLutsDir =
         rootProject.layout.projectDirectory.dir("raw-assets/abpy-fujifilm-camera-profiles/provia conversion luts")
@@ -72,6 +82,7 @@ sourceSets {
             "Classic Neg Pixel sRGB.cube",
             "Nostalgic Neg Pixel sRGB.cube",
             "Koda64 Pixel sRGB.cube",
+            "Charcoal sRGB.cube",
         )
     }
 }

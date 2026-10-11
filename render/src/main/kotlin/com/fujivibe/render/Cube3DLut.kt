@@ -21,6 +21,18 @@ class Cube3DLut(val size: Int, private val table: FloatArray) {
 
     /** Trilinearly interpolated value for `r, g, b` in `[0, 1]`. */
     fun sample(r: Float, g: Float, b: Float): Rgb {
+        val out = FloatArray(3)
+        sampleInto(r, g, b, out)
+        return Rgb(out[0], out[1], out[2])
+    }
+
+    /**
+     * [sample] without allocating: writes the interpolated red, green and blue into `out[0..2]`.
+     * The render loops call this once per pixel, millions of times a photo, and Android's runtime
+     * (unlike a desktop JVM) doesn't optimise away a per-pixel allocation, so the object-returning
+     * [sample] was most of a render's cost. Same arithmetic as before, so results are identical.
+     */
+    fun sampleInto(r: Float, g: Float, b: Float, out: FloatArray) {
         val maxIndex = (size - 1).toFloat()
         val rf = r.coerceIn(0f, 1f) * maxIndex
         val gf = g.coerceIn(0f, 1f) * maxIndex
@@ -37,20 +49,27 @@ class Cube3DLut(val size: Int, private val table: FloatArray) {
         val gt = gf - g0
         val bt = bf - b0
 
-        val c00 = lerp(valueAt(r0, g0, b0), valueAt(r1, g0, b0), rt)
-        val c10 = lerp(valueAt(r0, g1, b0), valueAt(r1, g1, b0), rt)
-        val c01 = lerp(valueAt(r0, g0, b1), valueAt(r1, g0, b1), rt)
-        val c11 = lerp(valueAt(r0, g1, b1), valueAt(r1, g1, b1), rt)
+        val greenStride = size * 3
+        val blueStride = size * size * 3
+        val i000 = b0 * blueStride + g0 * greenStride + r0 * 3
+        val i100 = b0 * blueStride + g0 * greenStride + r1 * 3
+        val i010 = b0 * blueStride + g1 * greenStride + r0 * 3
+        val i110 = b0 * blueStride + g1 * greenStride + r1 * 3
+        val i001 = b1 * blueStride + g0 * greenStride + r0 * 3
+        val i101 = b1 * blueStride + g0 * greenStride + r1 * 3
+        val i011 = b1 * blueStride + g1 * greenStride + r0 * 3
+        val i111 = b1 * blueStride + g1 * greenStride + r1 * 3
 
-        val c0 = lerp(c00, c10, gt)
-        val c1 = lerp(c01, c11, gt)
+        for (c in 0 until 3) {
+            val c00 = table[i000 + c] + (table[i100 + c] - table[i000 + c]) * rt
+            val c10 = table[i010 + c] + (table[i110 + c] - table[i010 + c]) * rt
+            val c01 = table[i001 + c] + (table[i101 + c] - table[i001 + c]) * rt
+            val c11 = table[i011 + c] + (table[i111 + c] - table[i011 + c]) * rt
 
-        return lerp(c0, c1, bt)
+            val c0 = c00 + (c10 - c00) * gt
+            val c1 = c01 + (c11 - c01) * gt
+
+            out[c] = c0 + (c1 - c0) * bt
+        }
     }
-
-    private fun lerp(a: Rgb, b: Rgb, t: Float): Rgb = Rgb(
-        a.r + (b.r - a.r) * t,
-        a.g + (b.g - a.g) * t,
-        a.b + (b.b - a.b) * t,
-    )
 }

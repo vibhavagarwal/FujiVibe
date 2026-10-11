@@ -47,6 +47,15 @@ class ResourceLutLoaderWiringTest {
     }
 
     @Test
+    fun `Charcoal loads as a monochrome LUT`() {
+        val charcoal = ResourceLutLoader().load(FilmSimulation.CHARCOAL)
+
+        val sample = charcoal.sample(0.8f, 0.3f, 0.1f)
+        assertEquals(sample.r, sample.g, 1e-4f)
+        assertEquals(sample.g, sample.b, 1e-4f)
+    }
+
+    @Test
     fun `Classic Neg Pixel and Nostalgic Neg Pixel are distinct LUTs`() {
         val loader = ResourceLutLoader()
 

@@ -19,7 +19,6 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,19 +47,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import android.util.LruCache
 import com.fujivibe.bitmap.toBitmap
 import com.fujivibe.bitmap.toPixelImage
 import com.fujivibe.capture.CaptureStore
 import com.fujivibe.gallery.GalleryWriter
 import com.fujivibe.render.GrainRenderPipeline
 import com.fujivibe.render.LutRenderPipeline
+import com.fujivibe.render.PixelImage
 import com.fujivibe.render.RenderPipeline
 import com.fujivibe.review.ReviewCycle
 import com.fujivibe.review.SavedLooks
+import com.fujivibe.ui.zoom.rememberZoomState
+import com.fujivibe.ui.zoom.zoomLayer
+import com.fujivibe.ui.zoom.zoomable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,6 +74,16 @@ private val SwipeThreshold = 56.dp
 
 /** Widest the Discard/Export row gets; about a phone held upright. */
 private val BottomBarMaxWidth = 400.dp
+
+/**
+ * Longer-edge cap for the sharper render shown while zoomed in. The ~510px preview is far too
+ * soft to magnify, but full resolution would take tens of seconds to render, so this lands
+ * `loadPreview` on its ~2000px bracket (about 3MP, a couple of seconds on-device).
+ */
+private const val DetailMaxDimension = 1500
+
+/** How many looks' detail renders to keep, so zooming back into a look you've seen is instant. */
+private const val DetailCacheSize = 3
 
 /** Persists the swipe position across Activity recreation (e.g. rotation). */
 private val ReviewCycleSaver = Saver<ReviewCycle, Int>(
@@ -118,6 +132,30 @@ fun ReviewScreen(
         displayed = DisplayedFrame(cycle, renderPipeline.render(previewSource, cycle.current).toBitmap())
     }
 
+    // Pinch-zoom and pan, shared by every look. Zooming in swaps the soft preview for a sharper
+    // render of the same look, produced on demand (the first zoom pays for the decode; each look's
+    // render is then cached).
+    val zoomState = rememberZoomState()
+    val zoom = zoomState.zoom
+    var detailSource by remember { mutableStateOf<PixelImage?>(null) }
+    var detail by remember { mutableStateOf<DisplayedFrame?>(null) }
+    val detailCache = remember { LruCache<Int, Bitmap>(DetailCacheSize) }
+
+    LaunchedEffect(zoom.isZoomed) {
+        if (zoom.isZoomed && detailSource == null) {
+            detailSource = withContext(Dispatchers.IO) {
+                captureStore.loadPreview(DetailMaxDimension)?.toPixelImage()
+            }
+        }
+    }
+    LaunchedEffect(cycle, zoom.isZoomed, detailSource) {
+        val source = detailSource
+        if (!zoom.isZoomed || source == null) return@LaunchedEffect
+        val bitmap = detailCache.get(cycle.position)
+            ?: renderPipeline.render(source, cycle.current).toBitmap().also { detailCache.put(cycle.position, it) }
+        detail = DisplayedFrame(cycle, bitmap)
+    }
+
     // Full-resolution render + gallery write is slow (CPU LUT interpolation at real photo
     // resolution can take 10s of seconds - see CaptureStore.loadPreview's doc comment for the
     // preview-scale measurement this extrapolates from), so Export needs its own loading state
@@ -131,31 +169,25 @@ fun ReviewScreen(
     // What the shot was taken with, as a camera's playback display shows it.
     val shootingInfo = remember { captureStore.shootingInfo()?.let(::shootingInfoLine) }
 
+    // The sharper render when there is one for the look on screen; otherwise the quick preview.
+    val shownBitmap = detail?.takeIf { it.cycle == displayed.cycle }?.bitmap ?: displayed.bitmap
+
     Box(
         modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                var dragAmount = 0f
-                detectHorizontalDragGestures(
-                    onDragStart = { dragAmount = 0f },
-                    onHorizontalDrag = { change, delta ->
-                        change.consume()
-                        dragAmount += delta
-                    },
-                    onDragEnd = {
-                        when {
-                            dragAmount <= -swipeThresholdPx -> cycle = cycle.next()
-                            dragAmount >= swipeThresholdPx -> cycle = cycle.previous()
-                        }
-                    },
-                )
-            },
+            .zoomable(
+                state = zoomState,
+                contentSize = { displayed.bitmap?.let { IntSize(it.width, it.height) } ?: IntSize.Zero },
+                swipeThresholdPx = swipeThresholdPx,
+                // Swiping between looks, at fit only; zoomed, a drag pans instead.
+                onSwipe = { toNext -> cycle = if (toNext) cycle.next() else cycle.previous() },
+            ),
     ) {
-        displayed.bitmap?.let {
+        shownBitmap?.let {
             Image(
                 bitmap = it.asImageBitmap(),
                 contentDescription = displayed.cycle.label,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().zoomLayer(zoomState),
                 contentScale = ContentScale.Fit,
             )
         }
@@ -186,6 +218,7 @@ fun ReviewScreen(
                     val saved = fullResSource != null &&
                         galleryWriter.save(
                             renderPipeline.render(fullResSource, selection),
+                            selection = selection,
                             metadataFrom = captureStore.metadataSource(),
                         )
 
@@ -213,6 +246,14 @@ fun ReviewScreen(
 
             if (isExporting) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+
+            // Zoomed in on the soft preview while the sharper render is still being made.
+            if (zoom.isZoomed && shownBitmap === displayed.bitmap) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp).size(20.dp),
+                    strokeWidth = 2.dp,
+                )
             }
 
             SnackbarHost(

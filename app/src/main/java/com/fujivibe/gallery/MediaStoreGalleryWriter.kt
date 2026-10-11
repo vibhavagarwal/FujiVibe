@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import android.util.Log
 import com.fujivibe.bitmap.toBitmap
 import com.fujivibe.render.PixelImage
+import com.fujivibe.render.RenderSelection
 import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -26,8 +27,9 @@ class MediaStoreGalleryWriter(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : GalleryWriter {
 
-    override suspend fun save(image: PixelImage, metadataFrom: File?): Boolean = withContext(dispatcher) {
-        val request = galleryWriteRequest(System.currentTimeMillis())
+    override suspend fun save(image: PixelImage, selection: RenderSelection, metadataFrom: File?): Boolean =
+        withContext(dispatcher) {
+        val request = galleryWriteRequest(System.currentTimeMillis(), selection)
         val resolver = context.contentResolver
 
         val uri = resolver.insert(

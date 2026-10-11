@@ -37,7 +37,7 @@ import com.fujivibe.viewfinder.photoFrameInView
 
 /**
  * A quiet "FUJIVIBE" wordmark on the left, the way camera makers print their name on the body;
- * grid, level, timer and aspect-ratio toggles on the right, amber while on.
+ * grid, level, timer and aspect-ratio toggles on the right, amber while on, then the Library.
  */
 @Composable
 fun TopBar(
@@ -49,6 +49,7 @@ fun TopBar(
     onTimerNext: () -> Unit,
     aspect: AspectChoice,
     onAspectNext: () -> Unit,
+    onLibraryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -86,6 +87,8 @@ fun TopBar(
                     .clickable(onClick = onAspectNext)
                     .padding(horizontal = 10.dp, vertical = 8.dp),
             )
+            // Not a setting that is on or off, but a way to another screen; never amber.
+            ToggleIcon(R.drawable.ic_photo_library, "Library", active = false, onClick = onLibraryClick)
         }
     }
 }

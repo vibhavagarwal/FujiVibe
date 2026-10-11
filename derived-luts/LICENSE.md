@@ -18,6 +18,10 @@ licensed CC BY-NC-SA 4.0.
 
 The original, unmodified source LUTs are not included in this repository.
 
+`Charcoal sRGB.cube` is the exception: it is not an adaptation of the abpy pack. It is generated entirely from
+FujiVibe's own monochrome conversion and tone curve (ADR 0011), with no third-party LUT as input. It sits in this
+folder, and ships under the same terms as the files above, only for simplicity.
+
 ## What this means
 
 You may share and adapt these files for non-commercial purposes, as long as you credit the

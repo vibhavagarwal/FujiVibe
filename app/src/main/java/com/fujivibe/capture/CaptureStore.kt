@@ -56,19 +56,10 @@ class CaptureStore(context: Context) {
     fun shootingInfo(): ShootingInfo? {
         if (!file.exists()) return null
         return try {
-            val exif = ExifInterface(file.path)
             // Measured from the JPEG itself; EXIF size tags aren't reliably present.
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.path, bounds)
-            ShootingInfo(
-                iso = exif.getAttributeInt(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, -1).takeIf { it > 0 },
-                exposureTimeSeconds = exif.getAttributeDouble(ExifInterface.TAG_EXPOSURE_TIME, -1.0).takeIf { it > 0 },
-                exposureBiasStops = exif.getAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE)
-                    ?.let { exif.getAttributeDouble(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, 0.0) },
-                zoomRatio = exif.getAttributeDouble(ExifInterface.TAG_DIGITAL_ZOOM_RATIO, -1.0).takeIf { it > 0 },
-                width = bounds.outWidth,
-                height = bounds.outHeight,
-            )
+            ExifInterface(file.path).toShootingInfo(width = bounds.outWidth, height = bounds.outHeight)
         } catch (e: IOException) {
             Log.w(TAG, "Couldn't read shooting settings", e)
             null

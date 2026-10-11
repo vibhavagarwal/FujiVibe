@@ -3,6 +3,7 @@ package com.fujivibe.render
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class GrainRenderPipelineTest {
@@ -56,6 +57,37 @@ class GrainRenderPipelineTest {
         val result = pipeline.render(source, RenderSelection.Simulation(FilmSimulation.NOSTALGIC_NEG_PIXEL))
 
         assertNotEquals(source, result)
+    }
+
+    @Test
+    fun `Charcoal gets grain applied, changing at least one pixel`() = runTest {
+        val source = solidImage(20, 20, 0xFF808080.toInt())
+        val pipeline = GrainRenderPipeline(PassthroughPipeline)
+
+        val result = pipeline.render(source, RenderSelection.Simulation(FilmSimulation.CHARCOAL))
+
+        assertNotEquals(source, result)
+    }
+
+    @Test
+    fun `Charcoal's grain is stronger and finer than the default`() {
+        val default = GrainRenderPipeline.GRAIN_PROFILES.getValue(FilmSimulation.CLASSIC_NEG_PIXEL)
+        val charcoal = GrainRenderPipeline.GRAIN_PROFILES.getValue(FilmSimulation.CHARCOAL)
+
+        assertTrue(charcoal.opacity > default.opacity)
+        assertTrue(charcoal.cellsAcrossWidth > default.cellsAcrossWidth)
+    }
+
+    @Test
+    fun `stronger grain moves pixels further from the source`() = runTest {
+        val source = solidImage(200, 200, 0xFF808080.toInt())
+        val pipeline = GrainRenderPipeline(PassthroughPipeline)
+
+        suspend fun meanDeviation(simulation: FilmSimulation): Double =
+            pipeline.render(source, RenderSelection.Simulation(simulation)).pixels
+                .map { Math.abs(((it ushr 8) and 0xFF) - 0x80) }.average()
+
+        assertTrue(meanDeviation(FilmSimulation.CHARCOAL) > meanDeviation(FilmSimulation.CLASSIC_NEG_PIXEL))
     }
 
     @Test

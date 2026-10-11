@@ -25,6 +25,7 @@ object PreviewFilmSimulation {
         FilmSimulation.CLASSIC_NEG_PIXEL to File("derived-luts"),
         FilmSimulation.NOSTALGIC_NEG_PIXEL to File("derived-luts"),
         FilmSimulation.KODA64_PIXEL to File("derived-luts"),
+        FilmSimulation.CHARCOAL to File("derived-luts"),
     )
 
     fun toPixelImage(image: BufferedImage): PixelImage {

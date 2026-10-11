@@ -25,12 +25,16 @@ The live camera preview screen shown before a Capture is taken.
 _Avoid_: Camera screen, Live view
 
 **Review**:
-The screen where the user inspects a Capture, swiping between Original and the available Film Simulations Exporting as many looks as wanted, then closing with Done or Discard.
+The screen where the user inspects a Capture, swiping between Original and the available Film Simulations (and pinch-zooming any of them to check detail), Exporting as many looks as wanted, then closing with Done or Discard.
 _Avoid_: Preview screen, Filter screen
 
 **Export**:
 Saving the currently selected rendering of the Capture — a Film Simulation applied, or Original — permanently to the system gallery. Does not end the Capture's lifecycle: Review stays open so other looks can be Exported too, and each look can be Exported at most once per Capture (see ADR 0009).
 _Avoid_: Save, Confirm
+
+**Library**:
+FujiVibe's in-app browser of the photos it has Exported (the files in `Pictures/FujiVibe/`), where one can be opened, zoomed and deleted. Reached from the Viewfinder's top bar. Not the system gallery, which is Android's own photo app and where Export writes to.
+_Avoid_: Gallery (collides with the system gallery)
 
 **Discard**:
 Abandoning a Capture without saving anything and returning to the Viewfinder. Ends the Capture's lifecycle.

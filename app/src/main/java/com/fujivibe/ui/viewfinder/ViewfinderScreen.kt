@@ -182,6 +182,7 @@ private class ExposureMeter {
 fun ViewfinderScreen(
     captureStore: CaptureStore,
     onCaptured: () -> Unit,
+    onOpenLibrary: () -> Unit,
     lensFacing: Int,
     onLensFacingChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -516,6 +517,10 @@ fun ViewfinderScreen(
                         aspect = aspect.next()
                         settings.aspect = aspect
                     }
+                },
+                onLibraryClick = {
+                    // Not mid-capture: leaving would drop the shot that's being taken.
+                    if (countdown == null && !isCapturing) onOpenLibrary()
                 },
                 modifier = Modifier.align(Alignment.TopCenter),
             )
