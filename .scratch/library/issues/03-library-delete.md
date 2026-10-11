@@ -1,7 +1,7 @@
 # 03: Delete a photo from the Library
 
-**Status:** built and installed; unit-tested; **not yet exercised on the device** (needs the user: it is their photo library, and the
-confirmation is Android's own dialog). Blocked by: 02 (done).
+**Status:** built, installed and unit-tested; deleting a FujiVibe-owned photo confirmed working on the device by the user. The
+Google Photos-owned case and a few edge cases are still unchecked (below). Blocked by: 02 (done).
 
 - [x] Delete (bin) icon in the viewer's top bar, next to the position; fades with the rest of the chrome while zoomed
 - [x] Android 11+ (`MediaStore.createDeleteRequest`): Android's own confirmation, and the photo goes to the system **trash** (restorable
@@ -15,8 +15,10 @@ confirmation is Android's own dialog). Blocked by: 02 (done).
 - [x] `LibraryModel.remove` updates the list at once; the next load replaces it, so a delete that didn't stick comes back
 - [x] Cancelling Android's dialog leaves everything as it was; a failed delete shows a snackbar ("Couldn't delete this photo")
 - [x] Tests: `photoAfterDelete`, `LibraryModel` (183+ total, none failing)
-- [ ] **User check on the Pixel 10 Pro:** (1) delete a photo FujiVibe owns, (2) delete one Google Photos owns, (3) cancel the dialog,
-  (4) delete the last remaining photo / one in the middle and see where the viewer lands, (5) confirm it appears in the system trash
+- [x] **User check on the Pixel 10 Pro, 2026-10-10:** deleted FujiVibe-owned photos from the viewer; they are gone from MediaStore
+  (confirmed over adb: the three newest exports left the list, the 13 older photos remain)
+- [ ] **Still unchecked:** (a) deleting a photo Google Photos owns (the case `createDeleteRequest` was chosen for), (b) cancelling Android's
+  dialog, (c) where the viewer lands after deleting a middle / the last photo, (d) that deleted photos show up in the system trash
 
 ## Notes
 - A throwaway test photo is waiting in the Library: `Charcoal_20261011_022706.jpg` (a black frame exported while testing the file

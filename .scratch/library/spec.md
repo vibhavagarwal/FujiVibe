@@ -51,7 +51,7 @@ from an icon in the Viewfinder's top bar; back returns to the Viewfinder.
 - `01` Library grid and entry point: **built and checked on the device** (awaiting the user's check with access granted).
 - `02` Full-screen viewer with pinch-zoom and swipe: **built and checked on the device** (pinch awaiting the user's check).
   Grid look labels are now acronyms with no background (`FilmSimulation.shortName`: CN, NN, K, CH; O for Original).
-- `03` Delete: **built and installed, unit-tested; the on-device check is the user's** (see the ticket).
+- `03` Delete: **built and unit-tested; deleting a FujiVibe-owned photo confirmed on the device**, Google Photos-owned and edge cases still to check (see the ticket).
 
 ## Out of Scope
 Share; editing or re-rendering a saved photo with another look (the Capture is deleted on Done, so there is nothing to
