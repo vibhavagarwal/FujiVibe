@@ -37,7 +37,7 @@ import com.fujivibe.viewfinder.photoFrameInView
 
 /**
  * A quiet "FUJIVIBE" wordmark on the left, the way camera makers print their name on the body;
- * grid, level, timer and aspect-ratio toggles on the right, amber while on, then the Library.
+ * develop-after-shot, grid, level, timer and aspect-ratio toggles on the right, amber while on, then the Library.
  */
 @Composable
 fun TopBar(
@@ -49,6 +49,8 @@ fun TopBar(
     onTimerNext: () -> Unit,
     aspect: AspectChoice,
     onAspectNext: () -> Unit,
+    developAfterShot: Boolean,
+    onDevelopAfterShotToggle: () -> Unit,
     onLibraryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -65,6 +67,7 @@ fun TopBar(
         )
         Box(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            ToggleIcon(R.drawable.ic_develop, "Develop after each shot", active = developAfterShot, onClick = onDevelopAfterShotToggle)
             ToggleIcon(R.drawable.ic_grid_on, "Grid", active = gridOn, onClick = onGridToggle)
             ToggleIcon(R.drawable.ic_straighten, "Level line", active = levelOn, onClick = onLevelToggle)
             ToggleIcon(

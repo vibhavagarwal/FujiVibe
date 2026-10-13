@@ -14,17 +14,42 @@ import kotlin.math.roundToInt
 private const val TAG = "CaptureStore"
 
 /**
- * Holds the app's single in-flight temp Capture. The backing file is fixed
- * and overwritten by each new shot — there is no queue or history.
+ * The Roll: every Capture waiting to be developed, one JPEG per shot in app-private storage, so
+ * they outlive the process (unlike the cache dir) and nothing is lost by shooting on. A Capture's
+ * id is the time it was taken, which is also its file name and its age (see [RollPolicy]).
  */
-class CaptureStore(context: Context) {
+class CaptureStore(
+    context: Context,
+    private val clock: () -> Long = System::currentTimeMillis,
+) {
+    private val dir = File(context.filesDir, "roll")
 
-    private val file = File(context.cacheDir, "capture.jpg")
+    /** The Captures on the Roll, newest first. */
+    fun ids(): List<Long> =
+        dir.listFiles().orEmpty()
+            .filter { it.extension == "jpg" }
+            .mapNotNull { it.nameWithoutExtension.toLongOrNull() }
+            .sortedDescending()
 
-    fun fileForNewCapture(): File {
-        if (file.exists()) file.delete()
-        return file
+    /** Deletes Captures older than [RollPolicy.EXPIRY_MILLIS]; run when the app starts. */
+    fun purgeExpired() {
+        RollPolicy.expired(ids(), clock()).forEach { open(it).discard() }
     }
+
+    /** The file the next shot is written to. Its name is the new Capture's id. */
+    fun fileForNewCapture(): File {
+        dir.mkdirs()
+        var id = clock()
+        // Two shots in one millisecond can't happen by hand, but never overwrite a Capture.
+        while (File(dir, "$id.jpg").exists()) id++
+        return File(dir, "$id.jpg")
+    }
+
+    fun open(id: Long): StoredCapture = StoredCapture(File(dir, "$id.jpg"))
+}
+
+/** One Capture on the Roll. */
+class StoredCapture(private val file: File) {
 
     fun loadFullResolution(): Bitmap? = decode(BitmapFactory.Options())
 

@@ -32,6 +32,7 @@ import android.hardware.camera2.TotalCaptureResult
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import android.util.Rational
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -101,6 +102,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.fujivibe.capture.CaptureStore
+import com.fujivibe.capture.RollPolicy
 import com.fujivibe.viewfinder.AspectChoice
 import com.fujivibe.viewfinder.TimerChoice
 import com.fujivibe.viewfinder.ViewfinderSettings
@@ -181,7 +183,10 @@ private class ExposureMeter {
 @Composable
 fun ViewfinderScreen(
     captureStore: CaptureStore,
-    onCaptured: () -> Unit,
+    rollIds: List<Long>,
+    /** A shot was saved to the Roll as [captureId]; [developNow] asks for Review to open on it. */
+    onCaptured: (captureId: Long, developNow: Boolean) -> Unit,
+    onOpenRoll: () -> Unit,
     onOpenLibrary: () -> Unit,
     lensFacing: Int,
     onLensFacingChange: (Int) -> Unit,
@@ -238,6 +243,7 @@ fun ViewfinderScreen(
     var levelOn by remember { mutableStateOf(settings.levelOn) }
     var timer by remember { mutableStateOf(settings.timer) }
     var aspect by remember { mutableStateOf(settings.aspect) }
+    var developAfterShot by remember { mutableStateOf(settings.developAfterShot) }
 
     // Rebuilt on every bind, since its stream shape follows the chosen aspect ratio.
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
@@ -425,6 +431,10 @@ fun ViewfinderScreen(
 
     fun takePhoto() {
         val capture = imageCapture ?: return
+        if (RollPolicy.isFull(rollIds.size)) {
+            Toast.makeText(context, "Roll is full. Develop or discard a shot to keep shooting.", Toast.LENGTH_SHORT).show()
+            return
+        }
         isCapturing = true
         view.performHapticFeedback(SHUTTER_HAPTIC)
         coroutineScope.launch {
@@ -452,14 +462,19 @@ fun ViewfinderScreen(
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     coroutineScope.launch {
-                        withContext(Dispatchers.IO) { captureStore.recordShootingSettings(zoomAtCapture, biasAtCapture) }
+                        withContext(Dispatchers.IO) {
+                            captureStore.open(outputFile.nameWithoutExtension.toLong())
+                                .recordShootingSettings(zoomAtCapture, biasAtCapture)
+                        }
                         isCapturing = false
-                        onCaptured()
+                        // Ready for the next shot unless Review was asked for; the Roll has this one.
+                        onCaptured(outputFile.nameWithoutExtension.toLong(), developAfterShot)
                     }
                 }
 
                 override fun onError(exception: ImageCaptureException) {
                     isCapturing = false
+                    outputFile.delete()
                     Log.e(TAG, "Capture failed", exception)
                 }
             },
@@ -517,6 +532,16 @@ fun ViewfinderScreen(
                         aspect = aspect.next()
                         settings.aspect = aspect
                     }
+                },
+                developAfterShot = developAfterShot,
+                onDevelopAfterShotToggle = {
+                    developAfterShot = !developAfterShot
+                    settings.developAfterShot = developAfterShot
+                    Toast.makeText(
+                        context,
+                        if (developAfterShot) "Each shot opens for a look" else "Shots wait on the Roll",
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 },
                 onLibraryClick = {
                     // Not mid-capture: leaving would drop the shot that's being taken.
@@ -697,6 +722,17 @@ fun ViewfinderScreen(
                     .background(if (countdown != null) Amber else Paper)
                     .clickable(enabled = !isCapturing) { onShutter() },
             )
+
+            if (rollIds.isNotEmpty()) {
+                RollThumbnail(
+                    captureStore = captureStore,
+                    latestId = rollIds.first(),
+                    count = rollIds.size,
+                    onClick = { if (countdown == null && !isCapturing) onOpenRoll() },
+                    modifier = if (sideways) Modifier.align(Alignment.CenterEnd).padding(end = 41.dp).offset(y = (-104).dp)
+                    else Modifier.align(Alignment.BottomCenter).padding(bottom = 43.dp).offset(x = (-108).dp),
+                )
+            }
 
             if (hasFrontCamera) {
                 Box(

@@ -3,7 +3,7 @@ package com.fujivibe.viewfinder
 import android.content.Context
 
 /**
- * The Viewfinder's set-once toggles (grid, level line, timer, aspect ratio), remembered across
+ * The Viewfinder's set-once toggles (grid, level line, timer, aspect ratio, develop after shot), remembered across
  * app launches. Zoom, ISO and shutter are deliberately not stored: they reset on every bind.
  */
 class ViewfinderSettings(context: Context) {
@@ -25,6 +25,11 @@ class ViewfinderSettings(context: Context) {
         get() = enumOrDefault(prefs.getString(KEY_ASPECT, null), AspectChoice.FOUR_THREE)
         set(value) = prefs.edit().putString(KEY_ASPECT, value.name).apply()
 
+    /** Whether a shot opens Review straight away, rather than waiting on the Roll. */
+    var developAfterShot: Boolean
+        get() = prefs.getBoolean(KEY_DEVELOP, false)
+        set(value) = prefs.edit().putBoolean(KEY_DEVELOP, value).apply()
+
     private inline fun <reified T : Enum<T>> enumOrDefault(name: String?, default: T): T =
         enumValues<T>().firstOrNull { it.name == name } ?: default
 
@@ -33,5 +38,6 @@ class ViewfinderSettings(context: Context) {
         const val KEY_LEVEL = "level"
         const val KEY_TIMER = "timer"
         const val KEY_ASPECT = "aspect"
+        const val KEY_DEVELOP = "develop_after_shot"
     }
 }

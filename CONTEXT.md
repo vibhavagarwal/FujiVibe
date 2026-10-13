@@ -5,7 +5,7 @@ FujiVibe is a personal Android camera app that captures a JPEG photo and lets th
 ## Language
 
 **Capture**:
-The full-resolution JPEG produced by a single shutter press, held temporarily until the user is Done with it or Discards it. Any number of looks may be Exported from it in between.
+The full-resolution JPEG produced by a single shutter press, kept on the Roll until the user is Done with it, Discards it, or it expires. Any number of looks may be Exported from it in between.
 _Avoid_: Photo, Shot, Image
 
 **Original**:
@@ -20,12 +20,16 @@ _Avoid_: Filter, Preset, Effect
 The 3D lookup table (a `.cube` file) that mathematically implements a single Film Simulation.
 _Avoid_: Filter data, Color table
 
+**Roll**:
+The Captures still waiting to be developed (see ADR 0012). A shutter press adds to it and the Viewfinder stays up, so the next shot can follow at once; a thumbnail with a count beside the shutter opens it. Holds at most 50 Captures (a full Roll takes no more shots) and drops any older than 30 days. Not the Library, which holds what has been Exported.
+_Avoid_: Queue, Inbox, Drafts
+
 **Viewfinder**:
 The live camera preview screen shown before a Capture is taken.
 _Avoid_: Camera screen, Live view
 
 **Review**:
-The screen where the user inspects a Capture, swiping between Original and the available Film Simulations (and pinch-zooming any of them to check detail), Exporting as many looks as wanted, then closing with Done or Discard.
+The screen where the user develops a Capture from the Roll: inspects it, swiping between Original and the available Film Simulations (and pinch-zooming any of them to check detail), Exporting as many looks as wanted, then closing with Done or Discard, or going Back to leave it on the Roll for later.
 _Avoid_: Preview screen, Filter screen
 
 **Export**:
@@ -37,9 +41,9 @@ FujiVibe's in-app browser of the photos it has Exported (the files in `Pictures/
 _Avoid_: Gallery (collides with the system gallery)
 
 **Discard**:
-Abandoning a Capture without saving anything and returning to the Viewfinder. Ends the Capture's lifecycle.
+Abandoning a Capture without saving anything, deleting it from the Roll. Ends the Capture's lifecycle.
 _Avoid_: Cancel, Delete
 
 **Done**:
-Closing Review after at least one look has been Exported: deletes the temp Capture and returns to the Viewfinder. Ends the Capture's lifecycle. Takes Discard's place once anything has been saved.
+Closing Review after at least one look has been Exported: deletes the Capture from the Roll. Ends the Capture's lifecycle. Takes Discard's place once anything has been saved.
 _Avoid_: Finish, Close

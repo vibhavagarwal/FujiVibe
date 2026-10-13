@@ -17,7 +17,12 @@ import com.fujivibe.ui.theme.PaperMuted
 import com.fujivibe.ui.theme.Scrim
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import com.fujivibe.R
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,7 +59,7 @@ import androidx.compose.ui.unit.dp
 import android.util.LruCache
 import com.fujivibe.bitmap.toBitmap
 import com.fujivibe.bitmap.toPixelImage
-import com.fujivibe.capture.CaptureStore
+import com.fujivibe.capture.StoredCapture
 import com.fujivibe.gallery.GalleryWriter
 import com.fujivibe.render.GrainRenderPipeline
 import com.fujivibe.render.LutRenderPipeline
@@ -110,15 +115,20 @@ private data class DisplayedFrame(val cycle: ReviewCycle, val bitmap: Bitmap?)
  */
 @Composable
 fun ReviewScreen(
-    captureStore: CaptureStore,
+    captureStore: StoredCapture,
     onClose: () -> Unit,
+    onBack: () -> Unit,
     galleryWriter: GalleryWriter,
+    initialSavedLooks: SavedLooks,
+    onSavedLooksChanged: (SavedLooks) -> Unit,
     modifier: Modifier = Modifier,
     renderPipeline: RenderPipeline = remember { GrainRenderPipeline(LutRenderPipeline()) },
 ) {
+    // Leaving without deciding keeps the Capture on the Roll for later.
+    BackHandler(onBack = onBack)
     val previewSource = remember { captureStore.loadPreview()?.toPixelImage() }
-    // Review can be restored from saved state after the cached Capture is gone (e.g. the OS
-    // cleared cacheDir during process death); there's nothing to show, so leave.
+    // Review can be restored from saved state after its Capture is gone (e.g. it expired while
+    // the app was closed); there's nothing to show, so leave.
     if (previewSource == null) {
         LaunchedEffect(Unit) { onClose() }
         return
@@ -161,7 +171,9 @@ fun ReviewScreen(
     // preview-scale measurement this extrapolates from), so Export needs its own loading state
     // rather than looking hung on the UI thread's behalf.
     var isExporting by remember { mutableStateOf(false) }
-    var savedLooks by rememberSaveable(stateSaver = SavedLooksSaver) { mutableStateOf(SavedLooks.NONE) }
+    var savedLooks by rememberSaveable(stateSaver = SavedLooksSaver) { mutableStateOf(initialSavedLooks) }
+    // Remembered above this screen, so coming back to the Capture later still knows what is saved.
+    LaunchedEffect(savedLooks) { onSavedLooksChanged(savedLooks) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -230,6 +242,25 @@ fun ReviewScreen(
                         if (saved) "Saved to Pictures/FujiVibe" else "Export failed. Tap Export to retry."
                     )
                 }
+            }
+
+            // Back to the Roll with the Capture kept, for deciding later.
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 6.dp)
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(Scrim)
+                    .clickable(enabled = !isExporting, onClick = onBack),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_back),
+                    contentDescription = "Back to the Roll",
+                    tint = Paper,
+                    modifier = Modifier.size(22.dp),
+                )
             }
 
             Column(
