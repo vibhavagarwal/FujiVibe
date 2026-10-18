@@ -329,22 +329,40 @@ class UsbSpikeActivity : ComponentActivity() {
 
         /**
          * Backs up all slots, then writes [recipe] into slot [number] and reads it back. Refuses a
-         * slot that has a name, so this test cannot overwrite a recipe the user set up.
+         * slot that has a name, so this test cannot overwrite a recipe the user set up; a slot that
+         * already carries this recipe's own name (an earlier write) may be written again.
          */
         fun writeRecipeToSlot(recipe: Recipe, number: Int) = work("Write ${recipe.name} to C$number") {
             val s = session ?: error("Connect first")
             val slots = s.readSlots()
             say("Backup saved: ${backUpSlots(slots).absolutePath}")
             val target = slots[number - 1]
-            if (target.name.isNotEmpty()) {
+            if (target.name.isNotEmpty() && target.name != recipe.slotName()) {
                 say("C$number holds \"${target.name}\"; this test writes only to unnamed slots. Nothing written.")
                 return@work
             }
             val write = recipe.toSlotValues(target)
             write.notes.forEach { say("Note: $it") }
-            val mismatches = s.writeSlot(number, write.values)
-            if (mismatches.isEmpty()) say("Wrote ${recipe.slotName()} into C$number; all ${write.values.size} properties read back as written")
-            else mismatches.forEach { say("Mismatch $it") }
+            val result = s.writeSlot(number, write.values, target.props)
+            say("Wrote ${result.written} settings into C$number")
+            result.rejected.forEach { say("Camera refused: $it") }
+            result.mismatches.forEach { say("Mismatch: $it") }
+            if (result.ok) say("All of them read back as written")
+            say(s.readSlots()[number - 1].describe())
+        }
+
+        /** Puts slot [number] back as it was in the oldest backup the app holds (the state before any write). */
+        fun restoreSlot(number: Int) = work("Restore C$number") {
+            val s = session ?: error("Connect first")
+            val file = getExternalFilesDir(null)?.listFiles { f -> f.name.startsWith("slots-backup-") }
+                ?.minByOrNull { it.name } ?: error("No backup file found")
+            val saved = file.readLines().mapNotNull { SlotDump.fromBackupLine(it) }.firstOrNull { it.number == number }
+                ?: error("${file.name} has no C$number")
+            say("Restoring C$number from ${file.name}: \"${saved.name}\"")
+            val result = s.writeSlot(number, saved.props, s.readSlots()[number - 1].props)
+            say("Wrote ${result.written} settings into C$number")
+            result.rejected.forEach { say("Camera refused: $it") }
+            result.mismatches.forEach { say("Mismatch: $it") }
             say(s.readSlots()[number - 1].describe())
         }
 
@@ -402,6 +420,9 @@ class UsbSpikeActivity : ComponentActivity() {
                 }
                 OutlinedButton(onClick = { targetSlot = when (val t = targetSlot) { null -> 5; 7 -> null; else -> t + 1 } }) {
                     Text(targetSlot?.let { "Write to: C$it" } ?: "Write to: none")
+                }
+                OutlinedButton(enabled = !busy && targetSlot != null, onClick = { restoreSlot(targetSlot!!) }) {
+                    Text(targetSlot?.let { "Restore C$it" } ?: "Restore slot")
                 }
                 OutlinedButton(onClick = { bisectMode = !bisectMode }) {
                     Text(if (bisectMode) "Bisect: ON" else "Bisect: off")

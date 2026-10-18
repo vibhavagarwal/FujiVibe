@@ -36,6 +36,7 @@ object FujiOp {
 
 object PtpResp {
     const val OK = 0x2001
+    const val INVALID_DEVICE_PROP_VALUE = 0x201C
     const val SESSION_ALREADY_OPEN = 0x201E
 }
 

@@ -105,20 +105,39 @@ class FujiRawSession(
         }
     }
 
+    /** What a slot write did: settings the camera refused, and settings that did not read back as written. */
+    class SlotWriteResult(val written: Int, val rejected: List<String>, val mismatches: List<String>) {
+        val ok get() = rejected.isEmpty() && mismatches.isEmpty()
+    }
+
     /**
-     * Writes [values] (property code to bytes) into custom slot [number], reads each back, and
-     * returns the properties that did not read back as written (empty when all did). The slot
-     * that was selected before is selected again.
+     * Writes [values] (property code to bytes) into custom slot [number], skipping any that already
+     * equal what [current] holds (an unchanged setting need not be written, and some, such as
+     * monochrome colour on a colour simulation, are refused even with their own value). A setting the
+     * camera refuses with "invalid value" is reported and the rest carry on. Everything written is read
+     * back. The slot selected before is selected again.
      */
-    fun writeSlot(number: Int, values: Map<Int, ByteArray>): List<String> {
+    fun writeSlot(number: Int, values: Map<Int, ByteArray>, current: Map<Int, ByteArray> = emptyMap()): SlotWriteResult {
         val before = readProperty(FujiProp.SLOT_SELECT).u16(0)
         try {
             writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(number.toByte(), 0))
-            for ((code, data) in values) writeProperty(code, data)
-            return values.mapNotNull { (code, data) ->
+            val rejected = mutableListOf<String>()
+            val mismatches = mutableListOf<String>()
+            var written = 0
+            for ((code, data) in values) {
+                if (current[code]?.contentEquals(data) == true) continue
+                try {
+                    writeProperty(code, data)
+                } catch (e: PtpException) {
+                    if (e.responseCode != PtpResp.INVALID_DEVICE_PROP_VALUE) throw e
+                    rejected += "${hex(code)} (wanted ${data.toHex()})"
+                    continue
+                }
+                written++
                 val now = readProperty(code)
-                if (now.contentEquals(data)) null else "${hex(code)}: wrote ${data.toHex()}, read ${now.toHex()}"
+                if (!now.contentEquals(data)) mismatches += "${hex(code)}: wrote ${data.toHex()}, read ${now.toHex()}"
             }
+            return SlotWriteResult(written, rejected, mismatches)
         } finally {
             runCatching { writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(before.toByte(), (before shr 8).toByte())) }
         }
@@ -150,7 +169,7 @@ class FujiRawSession(
     }
 
     private fun expectOk(response: PtpResponse, step: String): PtpResponse {
-        if (!response.ok) throw PtpException("$step failed with response ${hex(response.code)}")
+        if (!response.ok) throw PtpException("$step failed with response ${hex(response.code)}", response.code)
         return response
     }
 

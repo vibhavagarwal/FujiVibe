@@ -54,4 +54,21 @@ class SlotDumpTest {
         assertTrue(line.contains("D18E=0700"), line)
         assertTrue(line.contains("D19C=1027"), line)
     }
+
+    @Test
+    fun `a backup line reads back into the same slot`() {
+        val back = SlotDump.fromBackupLine(slot().backupLine())!!
+
+        assertEquals(3, back.number)
+        assertEquals("Kodachrome", back.name)
+        assertEquals(7, back.value(0xD18E))
+        assertEquals(10000, back.value(0xD19C))
+        assertEquals(slot().backupLine(), back.backupLine())
+    }
+
+    @Test
+    fun `a line that is not a backup line is not read`() {
+        assertNull(SlotDump.fromBackupLine("hello"))
+        assertNull(SlotDump.fromBackupLine("slot x D18E=0700"))
+    }
 }

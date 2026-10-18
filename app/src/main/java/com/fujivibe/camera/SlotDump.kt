@@ -26,4 +26,22 @@ class SlotDump(val number: Int, val props: Map<Int, ByteArray>) {
     fun backupLine(): String = "slot $number " + props.entries.joinToString(" ") {
         "${Integer.toHexString(it.key).uppercase()}=${it.value.joinToString("") { b -> "%02x".format(b) }}"
     }
+
+    companion object {
+        /** Reads a line written by [backupLine]; null if it is not one. */
+        fun fromBackupLine(line: String): SlotDump? {
+            val parts = line.trim().split(" ")
+            if (parts.size < 3 || parts[0] != "slot") return null
+            val number = parts[1].toIntOrNull() ?: return null
+            val props = linkedMapOf<Int, ByteArray>()
+            for (pair in parts.drop(2)) {
+                val (code, hex) = pair.split("=", limit = 2).takeIf { it.size == 2 } ?: return null
+                val c = code.toIntOrNull(16) ?: return null
+                if (hex.length % 2 != 0) return null
+                props[c] = ByteArray(hex.length / 2) { i -> hex.substring(i * 2, i * 2 + 2).toInt(16).toByte() }
+            }
+            return SlotDump(number, props)
+        }
+    }
 }
+

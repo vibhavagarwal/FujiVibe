@@ -8,7 +8,8 @@ interface UsbPipe {
     fun read(buffer: ByteArray, length: Int, timeoutMs: Int): Int
 }
 
-class PtpException(message: String) : Exception(message)
+/** [responseCode] is the camera's answer when it refused a request, null for a transport failure. */
+class PtpException(message: String, val responseCode: Int? = null) : Exception(message)
 
 class PtpResponse(val code: Int, val params: IntArray, val data: ByteArray) {
     val ok get() = code == PtpResp.OK
