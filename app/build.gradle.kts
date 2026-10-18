@@ -66,6 +66,8 @@ dependencies {
     implementation(libs.androidx.exifinterface)
 
     testImplementation(libs.junit.jupiter)
+    // Android's own org.json is only a stub in plain unit tests.
+    testImplementation("org.json:json:20240303")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

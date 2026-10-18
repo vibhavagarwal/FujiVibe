@@ -188,6 +188,7 @@ fun ViewfinderScreen(
     onCaptured: (captureId: Long, developNow: Boolean) -> Unit,
     onOpenRoll: () -> Unit,
     onOpenLibrary: () -> Unit,
+    onOpenSettings: () -> Unit,
     lensFacing: Int,
     onLensFacingChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -239,10 +240,11 @@ fun ViewfinderScreen(
 
     // Grid, level, timer and aspect ratio persist across launches; everything else resets.
     val settings = remember { ViewfinderSettings(context) }
-    var gridOn by remember { mutableStateOf(settings.gridOn) }
-    var levelOn by remember { mutableStateOf(settings.levelOn) }
+    // Grid, level line and aspect ratio are set in Settings; they are read here as the Viewfinder opens.
+    val gridOn = remember { settings.gridOn }
+    val levelOn = remember { settings.levelOn }
     var timer by remember { mutableStateOf(settings.timer) }
-    var aspect by remember { mutableStateOf(settings.aspect) }
+    val aspect = remember { settings.aspect }
     var developAfterShot by remember { mutableStateOf(settings.developAfterShot) }
 
     // Rebuilt on every bind, since its stream shape follows the chosen aspect ratio.
@@ -511,27 +513,11 @@ fun ViewfinderScreen(
 
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
             TopBar(
-                gridOn = gridOn,
-                onGridToggle = {
-                    gridOn = !gridOn
-                    settings.gridOn = gridOn
-                },
-                levelOn = levelOn,
-                onLevelToggle = {
-                    levelOn = !levelOn
-                    settings.levelOn = levelOn
-                },
+                aspect = aspect,
                 timer = timer,
                 onTimerNext = {
                     timer = timer.next()
                     settings.timer = timer
-                },
-                aspect = aspect,
-                onAspectNext = {
-                    if (countdown == null && !isCapturing) {
-                        aspect = aspect.next()
-                        settings.aspect = aspect
-                    }
                 },
                 developAfterShot = developAfterShot,
                 onDevelopAfterShotToggle = {
@@ -546,6 +532,9 @@ fun ViewfinderScreen(
                 onLibraryClick = {
                     // Not mid-capture: leaving would drop the shot that's being taken.
                     if (countdown == null && !isCapturing) onOpenLibrary()
+                },
+                onSettingsClick = {
+                    if (countdown == null && !isCapturing) onOpenSettings()
                 },
                 modifier = Modifier.align(Alignment.TopCenter),
             )
