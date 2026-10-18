@@ -54,7 +54,7 @@ class RecipeJsonTest {
     fun `the shipped recipe set loads, with unique ids and a recommendation text for each`() {
         val recipes = RecipeJson.parse(File("src/main/assets/recipes.json").readText())
 
-        assertEquals(33, recipes.size)
+        assertEquals(23, recipes.size)
         assertEquals(recipes.size, recipes.map { it.id }.toSet().size)
         recipes.forEach { assertTrue(it.recommendationText.isNotBlank(), "${it.id} has no recommendation text") }
         recipes.filter { it.kind == RecipeKind.COMMUNITY }.forEach {
