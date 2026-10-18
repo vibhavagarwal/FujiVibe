@@ -54,6 +54,7 @@ import com.fujivibe.recipe.RecipeSettings
 import com.fujivibe.recipe.RecipeJson
 import com.fujivibe.recipe.RecipeTextParser
 import com.fujivibe.recipe.applyTo
+import com.fujivibe.recipe.dynamicRangeLimit
 import com.fujivibe.recipe.unsupportedSettings
 import com.fujivibe.ui.theme.FujiVibeTheme
 import com.fujivibe.ui.theme.Ink
@@ -227,6 +228,7 @@ class UsbSpikeActivity : ComponentActivity() {
                 val s = ensureUploaded()
                 // Dropping the white balance isolates whether it is what tints a result.
                 val used = if (recipe != null && skipWhiteBalance) recipe.copy(settings = recipe.settings.copy(whiteBalance = null)) else recipe
+                recipe?.dynamicRangeLimit(s.baseProfile!!)?.let { say("Note: $it") }
                 renderAndSave(s, recipe?.id ?: tweak?.name ?: sim?.name ?: "AS_SHOT") {
                     val withSim = if (sim == null) it else it.withFilmSimulation(sim.code)
                     val withTweak = if (tweak == null) withSim else tweak.edit(withSim)

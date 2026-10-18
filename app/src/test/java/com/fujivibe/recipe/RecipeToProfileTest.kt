@@ -37,7 +37,7 @@ class RecipeToProfileTest {
         val p = kodachrome.applyTo(profile())
 
         assertEquals(0x0B, p.field(RawConvProfile.FILM_SIMULATION))
-        assertEquals(200, p.field(RawConvProfile.DYNAMIC_RANGE))
+        assertEquals(200, p.field(RawConvProfile.DYNAMIC_RANGE)) // asked 200; the block's own value is far above
         assertEquals(2, p.field(RawConvProfile.GRAIN)) // weak, small
         assertEquals(3, p.field(RawConvProfile.COLOR_CHROME)) // strong
         assertEquals(1, p.field(RawConvProfile.COLOR_CHROME_FX_BLUE)) // off
@@ -49,6 +49,24 @@ class RecipeToProfileTest {
         assertEquals(20, p.field(RawConvProfile.COLOR))
         assertEquals(10, p.field(RawConvProfile.SHARPNESS))
         assertEquals(30, p.field(RawConvProfile.CLARITY))
+    }
+
+    @Test
+    fun `a recipe never asks for more Dynamic Range than the RAF was shot with`() {
+        val shotAt200 = profile().with(RawConvProfile.DYNAMIC_RANGE, 200)
+        val wants400 = kodachrome.copy(settings = RecipeSettings(dynamicRange = DynamicRange.DR400))
+
+        assertEquals(200, wants400.applyTo(shotAt200).field(RawConvProfile.DYNAMIC_RANGE))
+        assertEquals("Dynamic range DR400 held to DR200, as the RAF was shot", wants400.dynamicRangeLimit(shotAt200))
+    }
+
+    @Test
+    fun `less Dynamic Range than the RAF was shot with is allowed, and needs no note`() {
+        val shotAt400 = profile().with(RawConvProfile.DYNAMIC_RANGE, 400)
+        val wants100 = kodachrome.copy(settings = RecipeSettings(dynamicRange = DynamicRange.DR100))
+
+        assertEquals(100, wants100.applyTo(shotAt400).field(RawConvProfile.DYNAMIC_RANGE))
+        assertEquals(null, wants100.dynamicRangeLimit(shotAt400))
     }
 
     @Test

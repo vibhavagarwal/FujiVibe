@@ -35,11 +35,15 @@ settings not applied. Results saved to Pictures/RAF Spike, named after the RAF a
   showed that **only leaving out Dynamic Range DR400 gave a normal picture**; leaving out
   colour, Color Chrome, FX Blue, white balance (5800K with shifts), grain, tone, sharpness or clarity
   did not. So those fields' encodings produce plausible results, and DR400 is the culprit.
-- Hypothesis: the camera limits Dynamic Range by ISO (in the camera DR200 needs ISO 400 or more and
-  DR400 needs 800 or more), and DR400 sent for a RAF shot at a lower ISO gives this tinted result.
-  Not yet confirmed: the ISO of DSCF2191 is unknown, and no high-ISO RAF has been tried. If the
-  hypothesis holds, `applyTo` needs the RAF's ISO and must clamp DR (400 to 200 to 100) to what the
-  ISO allows. The RAF's ISO can be read from its embedded JPEG's EXIF.
+- First hypothesis, refuted: that DR400 needs ISO 800 or more and the RAF's ISO was too low.
+  DSCF2191 was shot at ISO 1250.
+- Current hypothesis: the camera cannot render more Dynamic Range than the RAF was shot with (the
+  RAF recorded dr=200; DR400 asks for headroom the file lacks). Not confirmed. To test: shoot the
+  same scene RAW at DR100 and at DR400 (ISO 800 or more), then run Pacific Blues on both. Expected:
+  fine on the DR400 RAF, green on the DR100 one.
+- Provisional rule in `applyTo`: a recipe's Dynamic Range is held to the RAF's own
+  (`dynamicRangeLimit` names it when it applies; the spike logs "Note:"). Remove or refine it
+  once the cause is known.
 
 Still untested: white balance mode, kelvin and the R/B shifts (12 to 15), Color (18), Sharpness (19),
 Clarity (27), Color Chrome FX Blue (25), D Range Priority (7), and highlight with a value other

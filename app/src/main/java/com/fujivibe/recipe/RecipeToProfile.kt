@@ -12,15 +12,8 @@ fun Recipe.applyTo(profile: RawConvProfile): RawConvProfile {
     var p = profile.withFilmSimulation(baseSimulation.code)
     val s = settings
 
-    s.dynamicRange?.let { dr ->
-        // Auto has no value of its own that is known; the camera keeps the RAF's.
-        when (dr) {
-            DynamicRange.DR100 -> p = p.with(RawConvProfile.DYNAMIC_RANGE, 100)
-            DynamicRange.DR200 -> p = p.with(RawConvProfile.DYNAMIC_RANGE, 200)
-            DynamicRange.DR400 -> p = p.with(RawConvProfile.DYNAMIC_RANGE, 400)
-            DynamicRange.AUTO -> Unit
-        }
-    }
+    // Auto has no value of its own that is known; the camera keeps the RAF's.
+    s.dynamicRange?.percent()?.let { p = p.with(RawConvProfile.DYNAMIC_RANGE, minOf(it, profile.field(RawConvProfile.DYNAMIC_RANGE))) }
     s.dRangePriority?.let { p = p.with(RawConvProfile.D_RANGE_PRIORITY, it.ordinal) }
     s.grain?.let { p = p.with(RawConvProfile.GRAIN, it.nativeValue()) }
     s.colorChrome?.let { p = p.with(RawConvProfile.COLOR_CHROME, it.nativeValue()) }
@@ -32,6 +25,25 @@ fun Recipe.applyTo(profile: RawConvProfile): RawConvProfile {
     s.sharpness?.let { p = p.with(RawConvProfile.SHARPNESS, it.times10()) }
     s.clarity?.let { p = p.with(RawConvProfile.CLARITY, it.times10()) }
     return p
+}
+
+/**
+ * Asked for more Dynamic Range than a RAF was shot with, the camera rendered a strong green cast
+ * (Pacific Blues' DR400 on a RAF recorded at DR200), so [applyTo] never goes above the RAF's own.
+ * Provisional: the cause is not confirmed (.scratch/raw-develop/issues/02). Returns a note naming
+ * the limit when this recipe is held back by it, so a screen can say so.
+ */
+fun Recipe.dynamicRangeLimit(profile: RawConvProfile): String? {
+    val asked = settings.dynamicRange?.percent() ?: return null
+    val shot = profile.field(RawConvProfile.DYNAMIC_RANGE)
+    return if (asked > shot) "Dynamic range DR$asked held to DR$shot, as the RAF was shot" else null
+}
+
+private fun DynamicRange.percent(): Int? = when (this) {
+    DynamicRange.DR100 -> 100
+    DynamicRange.DR200 -> 200
+    DynamicRange.DR400 -> 400
+    DynamicRange.AUTO -> null
 }
 
 /** Settings of this recipe that [applyTo] cannot write yet, by name, so a screen can say so. */
