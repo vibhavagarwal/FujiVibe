@@ -23,7 +23,7 @@ each slot property (all 16-bit little-endian; negatives are two's complement):
 | D18E | image size | 7 = L 3:2 |
 | D18F | image quality | 2 Fine, 4 seen with RAW + JPEG |
 | D190 | dynamic range | 100, 200, 400 |
-| D191 | D Range Priority | 0 off, **1 weak**, **2 strong** (read from slots the user set to Weak and to Strong); auto not known |
+| D191 | D Range Priority | 0 off, **1 weak**, **2 strong**, **32768 (0x8000) auto** (each read from a slot the user set to it) |
 | D192 | film simulation | same codes as the RAW block (1 Provia, 11 Classic Chrome, 17 Classic Neg.) |
 | D193, D194 | monochrome WC, MG | times 10 (unconfirmed, no sample) |
 | D195 | grain | 2 to 5 as in the RAW block, **off is 6** (1 in the block) |
