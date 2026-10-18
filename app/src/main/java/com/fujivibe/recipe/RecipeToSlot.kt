@@ -38,14 +38,15 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     keep(0xD18F, 2) // image quality
     v[0xD190] = u16(s.dynamicRange?.percent() ?: 100)
     if (s.dynamicRange == DynamicRange.AUTO) notes += "Dynamic range auto is not written (left at DR100)"
-    // D Range Priority: Off is 0 and Strong is 2, read from a slot the user set to Strong. Weak and
-    // Auto are not known, so they are not guessed.
+    // D Range Priority: Off 0, Weak 1, Strong 2, read from a slot the user set to Weak and to Strong.
+    // Auto is not known, so it is not guessed.
     v[0xD191] = u16(
         when (s.dRangePriority) {
             null, DRangePriority.OFF -> 0
+            DRangePriority.WEAK -> 1
             DRangePriority.STRONG -> 2
-            DRangePriority.WEAK, DRangePriority.AUTO -> {
-                notes += "D Range Priority ${s.dRangePriority.name.lowercase()} is not written (its code is not known; left off)"
+            DRangePriority.AUTO -> {
+                notes += "D Range Priority auto is not written (its code is not known; left off)"
                 0
             }
         },
