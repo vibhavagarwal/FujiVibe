@@ -65,30 +65,50 @@ class RawConvProfile(val bytes: ByteArray) {
 
         const val EXPOSURE_BIAS = 5
         const val DYNAMIC_RANGE = 6
+        const val D_RANGE_PRIORITY = 7
         const val FILM_SIMULATION = 8
         const val GRAIN = 9
         const val COLOR_CHROME = 10
         const val WHITE_BALANCE = 12
         const val WB_SHIFT_R = 13
         const val WB_SHIFT_B = 14
+        const val WB_COLOR_TEMP = 15
         const val HIGHLIGHT_TONE = 16
         const val SHADOW_TONE = 17
         const val COLOR = 18
+        const val SHARPNESS = 19
+        const val COLOR_CHROME_FX_BLUE = 25
+        const val CLARITY = 27
     }
 }
 
-/** The film simulation codes the camera takes in a [RawConvProfile] (FilmKit's table, from an X100VI). */
-enum class FujiFilmSim(val code: Int, val label: String) {
-    PROVIA(0x01, "Provia"),
-    VELVIA(0x02, "Velvia"),
-    ASTIA(0x03, "Astia"),
-    PRO_NEG_HI(0x04, "Pro Neg. Hi"),
-    PRO_NEG_STD(0x05, "Pro Neg. Std"),
-    CLASSIC_CHROME(0x0B, "Classic Chrome"),
-    ACROS(0x0C, "Acros"),
-    ETERNA(0x10, "Eterna"),
-    CLASSIC_NEG(0x11, "Classic Neg."),
-    ETERNA_BLEACH(0x12, "Eterna Bleach Bypass"),
-    NOSTALGIC_NEG(0x13, "Nostalgic Neg."),
-    REALA_ACE(0x14, "Reala Ace"),
+/**
+ * The film simulation codes the camera takes in a [RawConvProfile] (FilmKit's table, from an
+ * X100VI), with the [id] a recipe names it by.
+ */
+enum class FujiFilmSim(val code: Int, val label: String, val id: String) {
+    PROVIA(0x01, "Provia", "provia"),
+    VELVIA(0x02, "Velvia", "velvia"),
+    ASTIA(0x03, "Astia", "astia"),
+    PRO_NEG_HI(0x04, "Pro Neg. Hi", "pro-neg-hi"),
+    PRO_NEG_STD(0x05, "Pro Neg. Std", "pro-neg-std"),
+    MONOCHROME(0x06, "Monochrome", "monochrome"),
+    MONOCHROME_YE(0x07, "Monochrome + Ye", "monochrome-ye"),
+    MONOCHROME_R(0x08, "Monochrome + R", "monochrome-r"),
+    MONOCHROME_G(0x09, "Monochrome + G", "monochrome-g"),
+    SEPIA(0x0A, "Sepia", "sepia"),
+    CLASSIC_CHROME(0x0B, "Classic Chrome", "classic-chrome"),
+    ACROS(0x0C, "Acros", "acros"),
+    ACROS_YE(0x0D, "Acros + Ye", "acros-ye"),
+    ACROS_R(0x0E, "Acros + R", "acros-r"),
+    ACROS_G(0x0F, "Acros + G", "acros-g"),
+    ETERNA(0x10, "Eterna", "eterna"),
+    CLASSIC_NEG(0x11, "Classic Neg.", "classic-neg"),
+    ETERNA_BLEACH(0x12, "Eterna Bleach Bypass", "eterna-bleach"),
+    NOSTALGIC_NEG(0x13, "Nostalgic Neg.", "nostalgic-neg"),
+    REALA_ACE(0x14, "Reala Ace", "reala-ace");
+
+    companion object {
+        fun fromId(id: String): FujiFilmSim? = entries.firstOrNull { it.id == id }
+    }
 }

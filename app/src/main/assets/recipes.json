@@ -1,5 +1,5 @@
 {
-  "_about": "Draft recipe set for the RAF Develop feature. Settings are for the user's X-T5 (X-Trans V). Settings values come from the cited sources; bestFor, avoid and recommendationText are written for this project in its own words, for a future recommendation engine to read. userDescription is the user's own one-line description. Not yet approved by the user.",
+  "_about": "Seed recipe set for the Develop feature, for the user's X-T5 (X-Trans V). Settings come from the cited sources; bestFor, avoid and recommendationText are written for this project in its own words, for a recommendation engine to read; userDescription is the owner's own line. A null setting is not part of the recipe, so the camera keeps what the RAF recorded.",
   "_vocabulary": {
     "subjects": [
       "portrait",

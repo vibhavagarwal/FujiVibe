@@ -14,4 +14,7 @@ to Pictures/RAF Spike. Done when each field is marked as honoured or ignored bel
 Still to find positions and encodings for: white balance mode and shift (12 to 15), colour (18),
 sharpness (19), noise reduction (20, a lookup), clarity (27), Color Chrome FX Blue (25).
 
+The spike now also has a button per researched recipe (15) and Paste recipe, which log any
+settings not applied. Results saved to Pictures/RAF Spike, named after the RAF and recipe id.
+
 ## Comments

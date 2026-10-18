@@ -49,6 +49,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.fujivibe.recipe.Recipe
+import com.fujivibe.recipe.RecipeJson
+import com.fujivibe.recipe.RecipeTextParser
+import com.fujivibe.recipe.applyTo
+import com.fujivibe.recipe.unsupportedSettings
 import com.fujivibe.ui.theme.FujiVibeTheme
 import com.fujivibe.ui.theme.Ink
 import com.fujivibe.ui.theme.Paper
@@ -113,6 +118,14 @@ class UsbSpikeActivity : ComponentActivity() {
         var result by remember { mutableStateOf<Bitmap?>(null) }
         var fullSize by remember { mutableStateOf(true) }
         var deviceInfo by remember { mutableStateOf<DeviceInfo?>(null) }
+        val recipes = remember {
+            try {
+                RecipeJson.parse(assets.open("recipes.json").bufferedReader().use { it.readText() })
+            } catch (e: Exception) {
+                log.add("Could not load recipes: ${e.message}")
+                emptyList()
+            }
+        }
         val started = remember { System.currentTimeMillis() }
 
         fun say(line: String) {
@@ -166,8 +179,9 @@ class UsbSpikeActivity : ComponentActivity() {
             }
         }
 
-        fun develop(sim: FujiFilmSim?, tweak: Tweak? = null) =
-            work("Develop ${tweak?.label ?: sim?.label ?: "as shot"}") {
+        fun develop(sim: FujiFilmSim?, tweak: Tweak? = null, recipe: Recipe? = null) =
+            work("Develop ${recipe?.name ?: tweak?.label ?: sim?.label ?: "as shot"}") {
+            recipe?.unsupportedSettings()?.takeIf { it.isNotEmpty() }?.let { say("Not applied yet: ${it.joinToString()}") }
             val s = session ?: error("Connect first")
             val bytes = raf ?: error("Pick a RAF first")
             if (!uploaded) {
@@ -179,14 +193,15 @@ class UsbSpikeActivity : ComponentActivity() {
             val t1 = System.currentTimeMillis()
             val jpeg = s.render {
                 val withSim = if (sim == null) it else it.withFilmSimulation(sim.code)
-                val edited = if (tweak == null) withSim else tweak.edit(withSim)
+                val withTweak = if (tweak == null) withSim else tweak.edit(withSim)
+                val edited = if (recipe == null) withTweak else recipe.applyTo(it)
                 (if (fullSize) edited.withFullSize() else edited).also { sent -> say("Sending: ${sent.describe()}") }
             }
             say("Render + download: ${System.currentTimeMillis() - t1} ms, ${jpeg.size / 1024} KB")
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, bounds)
             say("Result is ${bounds.outWidth} x ${bounds.outHeight} px")
-            val fileName = "${rafName ?: "raf"}-${tweak?.name ?: sim?.name ?: "AS_SHOT"}.jpg"
+            val fileName = "${rafName ?: "raf"}-${recipe?.id ?: tweak?.name ?: sim?.name ?: "AS_SHOT"}.jpg"
             File(getExternalFilesDir(null), fileName).writeBytes(jpeg)
             // Also into Pictures, so the Photos app shows it without a trip to the PC.
             val values = ContentValues().apply {
@@ -310,6 +325,24 @@ class UsbSpikeActivity : ComponentActivity() {
                 OutlinedButton(enabled = !busy, onClick = { develop(null) }) { Text("As shot") }
                 FujiFilmSim.entries.forEach { sim ->
                     OutlinedButton(enabled = !busy, onClick = { develop(sim) }) { Text(sim.label) }
+                }
+            }
+            Text("Recipes (${recipes.size}), as published for the X-T5:", color = Paper.copy(alpha = 0.7f), fontSize = 13.sp)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(enabled = !busy, onClick = {
+                    val clipboard = getSystemService(ClipboardManager::class.java)
+                    val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(this@UsbSpikeActivity)?.toString().orEmpty()
+                    val parsed = RecipeTextParser.parse(text)
+                    parsed.warnings.forEach { say("Paste: $it") }
+                    val pasted = parsed.recipe
+                    if (pasted == null) say("Paste: nothing to develop with. Copy a recipe's settings first.")
+                    else {
+                        say("Pasted recipe \"${pasted.name}\": ${pasted.baseSimulation.label}, ${pasted.settings}")
+                        develop(null, recipe = pasted)
+                    }
+                }) { Text("Paste recipe") }
+                recipes.forEach { recipe ->
+                    OutlinedButton(enabled = !busy, onClick = { develop(null, recipe = recipe) }) { Text(recipe.name) }
                 }
             }
             Text("Recipe fields (on the RAF's own film simulation):", color = Paper.copy(alpha = 0.7f), fontSize = 13.sp)
