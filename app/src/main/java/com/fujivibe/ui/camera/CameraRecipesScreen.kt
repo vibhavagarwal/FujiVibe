@@ -58,7 +58,8 @@ import com.fujivibe.camera.SlotStatus
 import com.fujivibe.camera.replacedName
 import com.fujivibe.recipe.Recipe
 import com.fujivibe.recipe.characterChips
-import com.fujivibe.recipe.diffusionFilter
+import com.fujivibe.recipe.filterLine
+import com.fujivibe.recipe.filterSummary
 import com.fujivibe.recipe.slotName
 import com.fujivibe.recipe.toSlotValues
 import com.fujivibe.ui.HeaderIcon
@@ -105,6 +106,7 @@ private fun RecipesMain(model: CameraRecipesModel, onBack: () -> Unit, onPick: (
     var adding by remember { mutableStateOf(false) }
     var showRaw by remember { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
+    var suggesting by remember { mutableStateOf(false) }
 
     Column(modifier.fillMaxSize().safeDrawingPadding()) {
         ScreenHeader("Camera recipes", onBack) {
@@ -144,10 +146,25 @@ private fun RecipesMain(model: CameraRecipesModel, onBack: () -> Unit, onPick: (
                     }
                 }
             }
-            item { SlotRow(1, model.slots.getOrNull(0), null, locked = true, onClick = {}) }
-            items((2..7).toList()) { n ->
-                SlotRow(n, model.slots.getOrNull(n - 1), model.recipeFor(n), locked = false, onClick = { if (!model.busy) onPick(n) })
+            item {
+                OutlinedButton(onClick = { suggesting = true }, enabled = !model.busy) { Text("Suggest recipes") }
             }
+            if (model.suggestionGaps.isNotEmpty()) {
+                item {
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CardColor).padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        model.suggestionGaps.forEach { Text(it, color = Paper, fontSize = 14.sp) }
+                    }
+                }
+            }
+            item { SlotRow(1, model.slots.getOrNull(0), null, isDefault = true, reason = null, pinned = false, onTogglePin = {}, onClick = {}) }
+            items((2..7).toList()) { n ->
+                SlotRow(
+                    n, model.slots.getOrNull(n - 1), model.recipeFor(n), isDefault = false,
+                    reason = model.reasons[n], pinned = n in model.locked, onTogglePin = { model.toggleLock(n) },
+                    onClick = { if (!model.busy) onPick(n) },
+                )
+            }
+            filterSummary(model.planned().values)?.let { summary -> item { Text(summary, color = PaperMuted, fontSize = 13.sp) } }
             model.report?.let { report -> item { ResultsCard(report, model.reportIsRestore) } }
             if (model.previousLoads.isNotEmpty()) {
                 item {
@@ -168,6 +185,7 @@ private fun RecipesMain(model: CameraRecipesModel, onBack: () -> Unit, onPick: (
 
     if (confirmLoad) ConfirmLoadSheet(model, onDismiss = { confirmLoad = false }, onLoad = { confirmLoad = false; model.load() })
     if (adding) AddRecipeDialog(model, onClose = { adding = false })
+    if (suggesting) SuggestSheet(model, onDismiss = { suggesting = false })
 }
 
 @Composable
@@ -236,21 +254,30 @@ private fun CheckRow(item: CheckItem, extra: String?) {
 }
 
 @Composable
-private fun SlotRow(number: Int, onCamera: SlotDump?, chosen: Recipe?, locked: Boolean, onClick: () -> Unit) {
+private fun SlotRow(
+    number: Int,
+    onCamera: SlotDump?,
+    chosen: Recipe?,
+    isDefault: Boolean,
+    reason: String?,
+    pinned: Boolean,
+    onTogglePin: () -> Unit,
+    onClick: () -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Paper.copy(alpha = if (locked) 0.04f else 0.09f))
-            .clickable(enabled = !locked, onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .background(Paper.copy(alpha = if (isDefault) 0.04f else 0.09f))
+            .clickable(enabled = !isDefault, onClick = onClick)
+            .padding(start = 14.dp, top = 12.dp, bottom = 12.dp, end = 6.dp),
         verticalAlignment = Alignment.Top,
     ) {
         Text("C$number", color = Amber, fontSize = 18.sp, fontWeight = FontWeight.Medium, modifier = Modifier.size(width = 44.dp, height = 24.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 when {
-                    locked -> "Your default, left as it is"
+                    isDefault -> "Your default, left as it is"
                     chosen != null -> chosen.name
                     else -> "Leave as it is"
                 },
@@ -260,6 +287,8 @@ private fun SlotRow(number: Int, onCamera: SlotDump?, chosen: Recipe?, locked: B
             )
             if (chosen != null) {
                 Text((listOf(chosen.baseSimulation.label) + chosen.characterChips()).joinToString(" · "), color = PaperMuted, fontSize = 13.sp)
+                if (reason != null) Text("Suggested for: $reason", color = Amber, fontSize = 12.sp)
+                Text(chosen.filterLine(), color = PaperMuted, fontSize = 12.sp)
             }
             val cameraName = onCamera?.name
             when {
@@ -273,10 +302,21 @@ private fun SlotRow(number: Int, onCamera: SlotDump?, chosen: Recipe?, locked: B
                 chosen.toSlotValues(onCamera ?: SlotDump(number, emptyMap())).notes.forEach {
                     Text(SlotNotes.plain(it), color = PaperMuted, fontSize = 12.sp)
                 }
-                chosen.diffusionFilter()?.let { Text("On the lens: $it", color = PaperMuted, fontSize = 12.sp) }
             }
         }
-        if (!locked) Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = "Change", tint = PaperMuted, modifier = Modifier.size(24.dp))
+        if (!isDefault) {
+            if (chosen != null) {
+                Box(Modifier.size(40.dp).clip(CircleShape).clickable(onClick = onTogglePin), contentAlignment = Alignment.Center) {
+                    Icon(
+                        painterResource(if (pinned) R.drawable.ic_lock else R.drawable.ic_lock_open),
+                        contentDescription = if (pinned) "Locked: Suggest leaves this slot alone" else "Unlocked: Suggest may change this slot",
+                        tint = if (pinned) Amber else PaperMuted,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+            Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = "Change", tint = PaperMuted, modifier = Modifier.padding(top = 8.dp).size(24.dp))
+        }
     }
 }
 

@@ -193,20 +193,34 @@ class RecipeToSlotTest {
         val r = recipe("CL", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(clarity = -3.0))
 
         assertEquals(0, r.toSlotValues(ccNeg).values.getValue(0xD1A2).u16(0)) // the slot held -4
-        assertEquals("CineBloom 10% or Black Pro-Mist 1/4", r.diffusionFilter())
+        assertEquals(FilterNeed.STRONGER, r.filterNeed())
         assertTrue(r.clarityNote()!!.contains("not written"))
     }
 
     @Test
-    fun `filter strength follows how negative the Clarity is, and positive Clarity gets no filter`() {
-        fun filter(c: Double?) = recipe("F", FujiFilmSim.PROVIA, RecipeSettings(clarity = c)).diffusionFilter()
-        assertEquals("CineBloom 5% or Black Pro-Mist 1/8", filter(-1.0))
-        assertEquals("CineBloom 10% or Black Pro-Mist 1/4", filter(-4.0))
-        assertEquals("CineBloom 20% or Black Pro-Mist 1/2", filter(-5.0))
-        assertEquals(null, filter(0.0))
-        assertEquals(null, filter(2.0))
-        assertEquals(null, filter(null))
+    fun `filter need follows how negative the Clarity is, and positive Clarity needs no filter`() {
+        fun need(c: Double?) = recipe("F", FujiFilmSim.PROVIA, RecipeSettings(clarity = c)).filterNeed()
+        assertEquals(FilterNeed.USE, need(-1.0))
+        assertEquals(FilterNeed.USE, need(-2.0))
+        assertEquals(FilterNeed.STRONGER, need(-3.0))
+        assertEquals(FilterNeed.STRONGER, need(-5.0))
+        assertEquals(FilterNeed.NONE, need(0.0))
+        assertEquals(FilterNeed.NONE, need(2.0))
+        assertEquals(FilterNeed.NONE, need(null))
         assertTrue(recipe("F", FujiFilmSim.PROVIA, RecipeSettings(clarity = 2.0)).clarityNote()!!.contains("less bite"))
+    }
+
+    @Test
+    fun `the filter line is always there and the summary counts the recipes that use one`() {
+        val none = recipe("N", FujiFilmSim.PROVIA, RecipeSettings(clarity = 0.0))
+        val light = recipe("L", FujiFilmSim.PROVIA, RecipeSettings(clarity = -2.0))
+        val strong = recipe("S", FujiFilmSim.PROVIA, RecipeSettings(clarity = -4.0))
+
+        assertEquals("Filter: not needed", none.filterLine())
+        assertEquals("Filter: use a filter", light.filterLine())
+        assertEquals("Filter: use a filter (stronger)", strong.filterLine())
+        assertEquals("2 of 3 recipes use a filter.", filterSummary(listOf(none, light, strong)))
+        assertEquals(null, filterSummary(emptyList()))
     }
 
     @Test

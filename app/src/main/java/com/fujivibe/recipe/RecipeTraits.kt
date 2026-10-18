@@ -91,28 +91,42 @@ fun List<Recipe>.tagsBy(group: (Recipe) -> List<String>): List<String> =
 /** A tag as a person reads it: "autumn-leaves" is "Autumn leaves". */
 fun tagLabel(tag: String): String = tag.replace('-', ' ').replaceFirstChar { it.uppercase() }
 
-/**
- * The diffusion filter that stands in for a negative Clarity, since Clarity is never written to a slot (it slows
- * saving). Fuji X Weekly pairs CineBloom 5% with Clarity -1 to -2, 10% with -3 to -4 and 20% with -5; the Black
- * Pro-Mist strengths are the nearest equivalents. Null when the recipe has no negative Clarity.
- */
-fun Recipe.diffusionFilter(): String? {
-    val c = settings.clarity ?: return null
+/** How much a recipe leans on a diffusion filter now that its negative Clarity is never written. */
+enum class FilterNeed { NONE, USE, STRONGER }
+
+fun Recipe.filterNeed(): FilterNeed {
+    val c = settings.clarity ?: return FilterNeed.NONE
     return when {
-        c >= 0 -> null
-        c >= -2 -> "CineBloom 5% or Black Pro-Mist 1/8"
-        c >= -4 -> "CineBloom 10% or Black Pro-Mist 1/4"
-        else -> "CineBloom 20% or Black Pro-Mist 1/2"
+        c >= 0 -> FilterNeed.NONE
+        c > -3 -> FilterNeed.USE
+        else -> FilterNeed.STRONGER
     }
 }
 
-/** A sentence about the recipe's Clarity, which is not written; null when it has none to speak of. */
+/** The line on a slot row: always there, so the rows can be scanned for the ones that need a filter. */
+fun Recipe.filterLine(): String = "Filter: " + when (filterNeed()) {
+    FilterNeed.NONE -> "not needed"
+    FilterNeed.USE -> "use a filter"
+    FilterNeed.STRONGER -> "use a filter (stronger)"
+}
+
+/** "3 of 6 recipes use a filter."; null when none are chosen. */
+fun filterSummary(recipes: Collection<Recipe>): String? {
+    if (recipes.isEmpty()) return null
+    val n = recipes.count { it.filterNeed() != FilterNeed.NONE }
+    return "$n of ${recipes.size} recipe${if (recipes.size == 1) "" else "s"} use a filter."
+}
+
+/** A sentence about the recipe's Clarity, which is never written because it slows saving; null when it has none to speak of. */
 fun Recipe.clarityNote(): String? {
     val c = settings.clarity ?: return null
-    val filter = diffusionFilter()
-    return when {
-        c == 0.0 -> null
-        filter != null -> "The recipe has Clarity ${signed(c)}, which is not written because it slows saving. A filter gives a similar soft glow: $filter."
-        else -> "The recipe has Clarity ${signed(c)}, which is not written because it slows saving. Expect a little less bite; add it in X RAW Studio if you want it."
+    return when (filterNeed()) {
+        FilterNeed.NONE ->
+            if (c == 0.0) null
+            else "The recipe has Clarity ${signed(c)}, which is not written because it slows saving. Expect a little less bite; add it in X RAW Studio if you want it."
+        FilterNeed.USE ->
+            "The recipe has Clarity ${signed(c)}, which is not written because it slows saving. A diffusion filter such as a Black Pro-Mist or CineBloom gives a similar soft glow. A light one (1/8 or 5%) is a good start; go stronger if you like it dreamier."
+        FilterNeed.STRONGER ->
+            "The recipe has Clarity ${signed(c)}, which is not written because it slows saving. This one is softer than most, so a diffusion filter such as a Black Pro-Mist or CineBloom helps a lot. Try a medium one (1/4 or 10%) and go stronger if you like it dreamier."
     }
 }

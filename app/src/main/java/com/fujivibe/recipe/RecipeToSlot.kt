@@ -91,7 +91,7 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     v[0xD1A1] = u16(NoiseReductionCodes.encode(nr) ?: 0x2000)
     if (NoiseReductionCodes.encode(nr) == null) notes += "High ISO NR $nr is not written (left at 0)"
     // Clarity is never written: it makes the camera pause to save each shot. The recipe's Clarity is kept
-    // in the recipe, and [diffusionFilter] says what to put on the lens instead.
+    // in the recipe, and [filterNeed] says whether to use a diffusion filter on the lens instead.
     v[0xD1A2] = u16(0)
     keep(0xD1A3, 1)
     keep(0xD1A4, 1)

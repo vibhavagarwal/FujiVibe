@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.fujivibe.camera.CameraConnector
 import com.fujivibe.camera.LoadHistoryStore
 import com.fujivibe.camera.SlotPlanStore
+import com.fujivibe.camera.SuggestStore
 import com.fujivibe.capture.CaptureStore
 import com.fujivibe.recipe.RecipeLibrary
 import com.fujivibe.ui.camera.CameraRecipesModel
@@ -109,6 +110,7 @@ fun FujiVibeApp() {
             library = RecipeLibrary(context),
             store = SlotPlanStore(context),
             history = LoadHistoryStore(context),
+            suggestStore = SuggestStore(context),
             backupDir = context.getExternalFilesDir(null) ?: context.filesDir,
             scope = cameraScope,
         )

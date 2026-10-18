@@ -12,9 +12,12 @@ import com.fujivibe.camera.LoadReport
 import com.fujivibe.camera.SlotDump
 import com.fujivibe.camera.SlotLoader
 import com.fujivibe.camera.SlotPlanStore
+import com.fujivibe.camera.SuggestStore
 import com.fujivibe.recipe.Recipe
 import com.fujivibe.recipe.RecipeLibrary
 import com.fujivibe.recipe.RecipeTextParser
+import com.fujivibe.recipe.Recommender
+import com.fujivibe.recipe.SuggestRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,6 +33,7 @@ class CameraRecipesModel(
     private val library: RecipeLibrary,
     private val store: SlotPlanStore,
     private val history: LoadHistoryStore,
+    val suggestStore: SuggestStore,
     private val backupDir: File,
     private val scope: CoroutineScope,
 ) {
@@ -68,6 +72,17 @@ class CameraRecipesModel(
     /** Slot number (2 to 7) to the id of the recipe chosen for it; a slot not in here is left as it is. */
     val plan = mutableStateMapOf<Int, String>().apply { putAll(store.plan) }
 
+    /** Slots Suggest leaves alone. */
+    var locked by mutableStateOf(suggestStore.locked)
+        private set
+
+    /** Why Suggest put each recipe in its slot; a slot the user then changes by hand loses its reason. */
+    val reasons = mutableStateMapOf<Int, String>()
+
+    /** Ticked tags nothing is tagged for, from the last Suggest. */
+    var suggestionGaps by mutableStateOf<List<String>>(emptyList())
+        private set
+
     private var connection: CameraConnection? = null
 
     fun recipeFor(slot: Int): Recipe? = plan[slot]?.let { id -> recipes.firstOrNull { it.id == id } }
@@ -75,12 +90,40 @@ class CameraRecipesModel(
     fun choose(slot: Int, recipe: Recipe?) {
         require(slot in 2..7) { "C1 is the default and is not changed" }
         if (recipe == null) plan.remove(slot) else plan[slot] = recipe.id
+        reasons.remove(slot)
         store.plan = plan.toMap()
+    }
+
+    fun toggleLock(slot: Int) {
+        locked = if (slot in locked) locked - slot else locked + slot
+        suggestStore.locked = locked
+    }
+
+    /**
+     * Fills the slots that are not locked with recipes for the ticked tags, as a draft the user can change.
+     * Nothing goes to the camera until they load.
+     */
+    fun suggest(subjects: Set<String>, light: Set<String>, mood: Set<String>, includeMonochrome: Boolean, hasFilter: Boolean) {
+        suggestStore.subjects = subjects
+        suggestStore.light = light
+        suggestStore.mood = mood
+        suggestStore.includeMonochrome = includeMonochrome
+        suggestStore.hasFilter = hasFilter
+        val keep = locked.mapNotNull { slot -> recipeFor(slot)?.let { slot to it } }.toMap()
+        val result = Recommender.suggest(
+            recipes,
+            SuggestRequest(subjects, light, mood, includeMonochrome, hasFilter, locked = keep),
+        )
+        (2..7).filter { it !in keep }.forEach { plan.remove(it); reasons.remove(it) }
+        result.picks.forEach { plan[it.slot] = it.recipe.id; reasons[it.slot] = it.reason }
+        store.plan = plan.toMap()
+        suggestionGaps = result.gaps
     }
 
     /** Uses an earlier load's recipes as the plan. Recipes that are no longer in the library are left out. */
     fun usePreviousLoad(entry: LoadEntry) {
         plan.clear()
+        reasons.clear()
         entry.plan.filterValues { id -> recipes.any { it.id == id } }.forEach { (slot, id) -> plan[slot] = id }
         store.plan = plan.toMap()
     }
