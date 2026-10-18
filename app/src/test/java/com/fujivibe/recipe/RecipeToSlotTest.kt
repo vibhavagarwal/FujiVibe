@@ -165,6 +165,15 @@ class RecipeToSlotTest {
     }
 
     @Test
+    fun `Dynamic Range Auto is written as 0xFFFF, as read from a slot the user set to Auto`() {
+        // C5 "WOODLAN" on the user's X-T5 after setting Dynamic Range to Auto: D190 read 65535.
+        val w = recipe("A", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(dynamicRange = DynamicRange.AUTO)).toSlotValues(empty)
+
+        assertEquals(65535, w.values.getValue(0xD190).u16(0))
+        assertEquals(emptyList<String>(), w.notes)
+    }
+
+    @Test
     fun `what cannot be written is reported as a note`() {
         val r = recipe("T", FujiFilmSim.ACROS_R, RecipeSettings(
             dynamicRange = DynamicRange.AUTO,
@@ -173,7 +182,6 @@ class RecipeToSlotTest {
 
         val notes = r.toSlotValues(empty).notes
 
-        assertTrue(notes.any { it.contains("Dynamic range auto") })
         assertTrue(notes.any { it.contains("Monochromatic") })
         assertTrue(notes.any { it.contains("High ISO NR -2") })
     }

@@ -36,8 +36,7 @@ C4, C6 and C7 loaded and read back cleanly. Three notes led to fixes (fake-camer
 - With D Range Priority on, the camera refuses Dynamic Range and the highlight and shadow tone
   (Vibrant Arizona's `D19D` and `D19E`), so they are left alone while it is on; and it is written
   first so a slot that still has it on (C5, from the tests) can have DR set after it is turned off.
-- Reggie's Portra asks for Dynamic Range Auto, whose slot code is not known; it was left at DR100.
-  To find it: set a slot's Dynamic Range to Auto on the camera and read it with "Show the camera's
-  raw slot values".
+- Reggie's Portra asks for Dynamic Range Auto; the slot code, found by setting a slot to Auto and
+  reading it with "Show the camera's raw slot values", is 65535 (0xFFFF), now written.
 
 ## Comments

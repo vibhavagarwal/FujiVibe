@@ -49,8 +49,8 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
             DRangePriority.AUTO -> 0x8000
         },
     )
-    if (priorityOn) keep(0xD190, 100) else v[0xD190] = u16(s.dynamicRange?.percent() ?: 100)
-    if (s.dynamicRange == DynamicRange.AUTO) notes += "Dynamic range auto is not written (left at DR100)"
+    // Dynamic Range is its percentage (100, 200, 400); Auto is 0xFFFF, read from a slot the user set to Auto.
+    if (priorityOn) keep(0xD190, 100) else v[0xD190] = u16(s.dynamicRange?.let { it.percent() ?: 0xFFFF } ?: 100)
     v[0xD192] = u16(baseSimulation.code)
     // A colour simulation refuses the monochrome colour settings, even with their own value.
     if (baseSimulation.isMonochrome) {
