@@ -400,7 +400,7 @@
         "colorChrome": null,
         "colorChromeFxBlue": null,
         "whiteBalance": {
-          "mode": null,
+          "mode": "auto",
           "kelvin": null,
           "shiftR": -4,
           "shiftB": -3
@@ -448,7 +448,7 @@
       ],
       "recommendationText": "Bold, rough black and white with maximum contrast, strong grain and a slight cool shift, aiming at the feel of 1970s and 80s press photography. Works best in hard, strong light with deep shadows, and for textured close-up details where impact matters more than smooth tones.",
       "confidence": "medium",
-      "notes": "The page does not name compatible cameras, and does not state ISO or exposure compensation or the Color setting. It says some settings may not exist on every body. Acros + Ye and these settings all exist on the X-T5."
+      "notes": "The page does not name compatible cameras, and does not state ISO or exposure compensation or the Color setting. It says some settings may not exist on every body. Acros + Ye and these settings all exist on the X-T5. The page gives white balance shifts (R -4, B -3) but not the mode; Auto is assumed, and matters little for black and white."
     },
     {
       "id": "soft-alpine",
