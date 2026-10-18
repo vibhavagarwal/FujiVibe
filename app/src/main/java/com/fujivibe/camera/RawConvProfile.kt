@@ -110,6 +110,9 @@ enum class FujiFilmSim(val code: Int, val label: String, val id: String) {
     NOSTALGIC_NEG(0x13, "Nostalgic Neg.", "nostalgic-neg"),
     REALA_ACE(0x14, "Reala Ace", "reala-ace");
 
+    /** Black and white: these take the monochrome colour settings and refuse Color. */
+    val isMonochrome: Boolean get() = code in 0x06..0x0A || code in 0x0C..0x0F
+
     companion object {
         fun fromId(id: String): FujiFilmSim? = entries.firstOrNull { it.id == id }
     }

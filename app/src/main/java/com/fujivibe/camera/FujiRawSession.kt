@@ -119,8 +119,13 @@ class FujiRawSession(
             val rejected = mutableListOf<String>()
             var written = 0
             val refused = mutableSetOf<Int>()
+            var modeWritten = false
             for ((code, data) in values) {
-                if (current[code]?.contentEquals(data) == true) continue
+                // Changing the white balance mode resets its shifts (and its temperature, in kelvin mode), so
+                // once the mode has been written they are written too, whether or not they matched before.
+                val resets = modeWritten && (code in WB_SHIFTS || (code == WB_TEMPERATURE && values[WB_MODE]?.u16(0) == WB_MODE_KELVIN))
+                if (!resets && current[code]?.contentEquals(data) == true) continue
+                if (code == WB_MODE) modeWritten = true
                 try {
                     writeProperty(code, data)
                     written++
@@ -133,7 +138,8 @@ class FujiRawSession(
             // Read everything back only once all the writing is done: writing one setting can change another
             // (a white balance temperature resets the shifts), which a read straight after each write misses.
             val mismatches = values.mapNotNull { (code, data) ->
-                if (code in refused) return@mapNotNull null
+                // Image size and quality are only kept, not set, and the camera reports its own quality.
+                if (code in refused || code in KEPT_SETTINGS) return@mapNotNull null
                 val now = readProperty(code)
                 if (now.contentEquals(data)) null else "${hex(code)}: wrote ${data.toHex()}, read ${now.toHex()}"
             }
@@ -176,6 +182,11 @@ class FujiRawSession(
     private fun yesNo(value: Boolean) = if (value) "yes" else "NO"
 
     private companion object {
+        const val WB_MODE = 0xD199
+        const val WB_TEMPERATURE = 0xD19C
+        const val WB_MODE_KELVIN = 0x8007
+        val WB_SHIFTS = setOf(0xD19A, 0xD19B)
+        val KEPT_SETTINGS = setOf(0xD18E, 0xD18F)
         const val SLOT_COUNT = 7
         const val SESSION_ID = 1
         const val ALL_STORAGES = -1 // 0xFFFFFFFF

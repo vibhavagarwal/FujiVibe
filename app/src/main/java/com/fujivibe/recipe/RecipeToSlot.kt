@@ -41,9 +41,16 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     if (s.dRangePriority != null) notes += "D Range Priority is not written yet"
     v[0xD191] = u16(0)
     v[0xD192] = u16(baseSimulation.code)
-    v[0xD193] = u16((s.monochromaticColor?.wc?.times(10) ?: 0).signed16())
-    v[0xD194] = u16((s.monochromaticColor?.mg?.times(10) ?: 0).signed16())
-    if (s.monochromaticColor != null) notes += "Monochromatic colour position is unconfirmed"
+    // A colour simulation refuses the monochrome colour settings, even with their own value.
+    if (baseSimulation.isMonochrome) {
+        v[0xD193] = u16((s.monochromaticColor?.wc?.times(10) ?: 0).signed16())
+        v[0xD194] = u16((s.monochromaticColor?.mg?.times(10) ?: 0).signed16())
+        if (s.monochromaticColor != null) notes += "Monochromatic colour position is unconfirmed"
+    } else {
+        keep(0xD193, 0)
+        keep(0xD194, 0)
+        if (s.monochromaticColor != null) notes += "Monochromatic colour only applies to a black-and-white simulation"
+    }
     v[0xD195] = u16(
         s.grain?.let { if (it.strength == GrainStrength.OFF) 6 else it.nativeValue() } ?: 6,
     )
@@ -55,12 +62,14 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     // (seen on an X-T5), so mode, then temperature, then the shifts.
     v[0xD199] = u16(wb?.mode?.nativeValue() ?: 2)
     if (wb != null && wb.mode == null) notes += "White balance mode not given; Auto used"
-    v[0xD19C] = u16(wb?.kelvin ?: 10000)
+    // The temperature is only accepted in the kelvin mode.
+    if (wb?.mode == WhiteBalanceMode.KELVIN) v[0xD19C] = u16(wb.kelvin ?: 10000) else keep(0xD19C, 10000)
     v[0xD19A] = u16((wb?.shiftR ?: 0).signed16())
     v[0xD19B] = u16((wb?.shiftB ?: 0).signed16())
     v[0xD19D] = u16((s.highlight?.times10() ?: 0).signed16())
     v[0xD19E] = u16((s.shadow?.times10() ?: 0).signed16())
-    v[0xD19F] = u16((s.color?.times10() ?: 0).signed16())
+    // A black-and-white simulation refuses Color.
+    if (baseSimulation.isMonochrome) keep(0xD19F, 0) else v[0xD19F] = u16((s.color?.times10() ?: 0).signed16())
     v[0xD1A0] = u16((s.sharpness?.times10() ?: 0).signed16())
     val nr = s.highIsoNr ?: 0
     v[0xD1A1] = u16(NoiseReductionCodes.encode(nr) ?: 0x2000)
