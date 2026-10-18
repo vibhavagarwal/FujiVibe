@@ -57,17 +57,18 @@ fun TopBar(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
     ) {
         Text(
             "FUJIVIBE",
             color = Paper.copy(alpha = 0.55f),
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
-            letterSpacing = 3.sp,
+            letterSpacing = 2.sp,
         )
         Box(Modifier.weight(1f))
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        // No gap between the buttons: with the icons for the Library and camera recipes there is no room for one on a 412dp phone.
+        Row(horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
             ToggleIcon(R.drawable.ic_develop, "Develop after each shot", active = developAfterShot, onClick = onDevelopAfterShotToggle)
             ToggleIcon(R.drawable.ic_grid_on, "Grid", active = gridOn, onClick = onGridToggle)
             ToggleIcon(R.drawable.ic_straighten, "Level line", active = levelOn, onClick = onLevelToggle)
