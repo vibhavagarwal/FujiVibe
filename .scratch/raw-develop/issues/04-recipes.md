@@ -1,6 +1,6 @@
 # 04 - Recipes: stored on the phone, applied by the camera
 
-Status: in-progress
+Status: in-progress (2026-10-18: the recipe store now serves .scratch/camera-slots; the Develop screen items below are parked)
 Type: task
 Blocked by: 02, 03
 

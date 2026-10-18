@@ -1,6 +1,6 @@
 # 05 - Several RAFs at once
 
-Status: needs-triage
+Status: parked (2026-10-18: the user prefers applying recipes while shooting; see .scratch/camera-slots)
 Type: task
 Blocked by: 03
 

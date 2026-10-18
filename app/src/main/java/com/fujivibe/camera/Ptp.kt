@@ -45,6 +45,14 @@ object FujiProp {
 
     /** The recipe the camera renders with, as one binary block (see [RawConvProfile]). */
     const val RAW_CONV_PROFILE = 0xD185
+
+    /** Writing 1 to 7 here makes that custom slot (C1 to C7) the one the properties below read and write. */
+    const val SLOT_SELECT = 0xD18C
+    const val SLOT_NAME = 0xD18D
+
+    /** The 24 settings of the selected slot, one property each (names in FilmKit's notes). */
+    const val SLOT_FIRST_SETTING = 0xD18E
+    const val SLOT_LAST_SETTING = 0xD1A5
 }
 
 /** The ObjectFormat the camera insists on for a RAF; anything else makes it fail silently. */

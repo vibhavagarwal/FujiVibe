@@ -73,6 +73,38 @@ class FujiRawSession(
     fun readProperty(code: Int): ByteArray =
         expectOk(ptp.command(PtpOp.GET_DEVICE_PROP_VALUE, code), "Get property ${hex(code)}").data
 
+    fun writeProperty(code: Int, data: ByteArray) {
+        expectOk(
+            ptp.commandWithData(PtpOp.SET_DEVICE_PROP_VALUE, intArrayOf(code), data),
+            "Set property ${hex(code)}",
+        )
+    }
+
+    /**
+     * Reads all seven custom slots: selects each, reads its name and settings, then selects the slot
+     * that was selected before. The only thing written is the slot selector.
+     */
+    fun readSlots(): List<SlotDump> {
+        val before = readProperty(FujiProp.SLOT_SELECT).u16(0)
+        try {
+            return (1..SLOT_COUNT).map { number ->
+                writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(number.toByte(), 0))
+                val props = linkedMapOf<Int, ByteArray>()
+                props[FujiProp.SLOT_NAME] = readProperty(FujiProp.SLOT_NAME)
+                for (code in FujiProp.SLOT_FIRST_SETTING..FujiProp.SLOT_LAST_SETTING) {
+                    props[code] = try {
+                        readProperty(code)
+                    } catch (e: PtpException) {
+                        ByteArray(0) // a property this camera does not answer for
+                    }
+                }
+                SlotDump(number, props)
+            }
+        } finally {
+            runCatching { writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(before.toByte(), (before shr 8).toByte())) }
+        }
+    }
+
     fun close() {
         runCatching { ptp.command(PtpOp.CLOSE_SESSION) }
     }
@@ -104,6 +136,7 @@ class FujiRawSession(
     private fun yesNo(value: Boolean) = if (value) "yes" else "NO"
 
     private companion object {
+        const val SLOT_COUNT = 7
         const val SESSION_ID = 1
         const val ALL_STORAGES = -1 // 0xFFFFFFFF
         const val UPLOAD_TIMEOUT_MS = 60_000

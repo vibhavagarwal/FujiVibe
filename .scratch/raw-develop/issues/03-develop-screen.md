@@ -1,6 +1,6 @@
 # 03 - Develop screen: pick a RAF, try looks, Export
 
-Status: ready-for-agent
+Status: parked (2026-10-18: the user prefers applying recipes while shooting; see .scratch/camera-slots)
 Type: task
 Blocked by: 01
 

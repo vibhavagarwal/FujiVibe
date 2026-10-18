@@ -48,3 +48,10 @@ it with the recipe and returns a JPEG, the same way Fujifilm's X RAW STUDIO does
 - Render time per look is the camera's, not the phone's: about one second after the first upload,
   so a slider can render on demand, with the neighbouring looks rendered ahead to feel instant.
 - Results are 10 MP until the size limit above is solved.
+
+**Update 2026-10-18:** the Develop screen built on this decision is parked. The user's workflow is to
+apply a recipe while shooting on the X-T5 (ADR 0014) and to use X RAW STUDIO on a computer for RAW
+work: developing on the phone needs the RAFs copied across, a cable and a mode switch, and the
+camera's 10 MP result falls short of X RAW STUDIO's full size. The decision above still stands for
+how a RAF would be developed on a phone, should it be taken up again.
+

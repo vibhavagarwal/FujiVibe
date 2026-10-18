@@ -1,6 +1,6 @@
 # 06 - Full-resolution renders
 
-Status: parked
+Status: parked (2026-10-18: the user prefers applying recipes while shooting; see .scratch/camera-slots)
 Type: research
 
 The camera renders about 10 MP over USB from the phone, but 40 MP from X RAW STUDIO. See ADR 0013

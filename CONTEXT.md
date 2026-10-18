@@ -45,8 +45,12 @@ A Fuji RAW file (`.RAF`) shot on the user's X-T5. The app never decodes it; the 
 _Avoid_: Raw, Negative
 
 **Recipe**:
-A named set of camera settings (Film Simulation plus grain, Color Chrome, white balance shift, tone and so on) that the camera applies when it develops a RAF. Held by the app, written to the camera for each render. Unlike a Film Simulation, a Recipe is rendered by the camera, not by applying a LUT.
+A named set of camera settings (Film Simulation plus grain, Color Chrome, white balance shift, tone and so on) that the X-T5 applies, either while shooting (from a Slot) or when it develops a RAF. Held by the app. Unlike a Film Simulation, a Recipe is rendered by the camera, not by applying a LUT.
 _Avoid_: Preset, Profile, Look
+
+**Slot**:
+One of the seven custom settings (C1 to C7) of the X-T5, each holding a full Recipe that the camera applies while shooting. FujiVibe writes Recipes into Slots over USB (see ADR 0014). Not a place on the Roll or in the Library.
+_Avoid_: Preset, Bank, Memory
 
 **Discard**:
 Abandoning a Capture without saving anything, deleting it from the Roll. Ends the Capture's lifecycle.

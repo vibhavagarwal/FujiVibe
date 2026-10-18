@@ -1,6 +1,8 @@
 # Develop RAFs with the camera
 
-Status: going ahead at 10 MP (ADR 0013 accepted)
+Status: parked (2026-10-18). The user decided the recipe should be applied while shooting on the
+X-T5, with X RAW STUDIO on a computer for RAW work; see .scratch/camera-slots. What was built here
+(the PTP layer, the Recipe model and the 15 recipes, the RAF Spike) is the base for that.
 
 A second part of the app. The user shoots on an X-T5, copies RAFs to the phone, plugs the camera
 into the phone, and tries stored Recipes on them; the camera does the rendering (ADR 0013). A

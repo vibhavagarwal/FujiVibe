@@ -305,6 +305,17 @@ class UsbSpikeActivity : ComponentActivity() {
             }
         }
 
+        /** Reads the seven custom slots, logs them, and saves a raw backup. Writes nothing but the slot selector. */
+        fun readSlots() = work("Read slots") {
+            val s = session ?: error("Connect first")
+            val slots = s.readSlots()
+            slots.forEach { say(it.describe()) }
+            val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US).format(java.util.Date())
+            val file = File(getExternalFilesDir(null), "slots-backup-$stamp.txt")
+            file.writeText(slots.joinToString("\n") { it.backupLine() } + "\n")
+            say("Backup saved: ${file.absolutePath}")
+        }
+
         /** Every property the camera lists, with the first bytes of its value. */
         fun dumpProps() = work("Dump properties") {
             val s = session ?: error("Connect first")
@@ -364,6 +375,7 @@ class UsbSpikeActivity : ComponentActivity() {
                 OutlinedButton(enabled = !busy, onClick = { probeField(0, 0..6) }) { Text("Probe p0") }
                 OutlinedButton(enabled = !busy, onClick = { probeField(4, 0..6) }) { Text("Probe p4") }
                 OutlinedButton(enabled = !busy, onClick = { dumpProps() }) { Text("Dump props") }
+                OutlinedButton(enabled = !busy, onClick = { readSlots() }) { Text("Read slots") }
                 OutlinedButton(onClick = {
                     val clipboard = getSystemService(ClipboardManager::class.java)
                     clipboard.setPrimaryClip(ClipData.newPlainText("RAF Spike log", log.joinToString("\n")))
