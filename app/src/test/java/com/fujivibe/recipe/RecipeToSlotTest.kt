@@ -120,16 +120,44 @@ class RecipeToSlotTest {
     }
 
     @Test
+    fun `D Range Priority Strong is written as 2, as on a slot the user set to Strong`() {
+        // C5 "AAA" on the user's X-T5 after setting D Range Priority to Strong: D191 went from 0 to 2.
+        val aaa = slot(5, "AAA", "D18E=7 D18F=4 D190=400 D191=2 D192=11 D193=0 D194=0 D195=2 D196=3 D197=2 D198=1 D199=4 D19A=2 D19B=65531 D19C=10000 D19D=65516 D19E=65526 D19F=20 D1A0=0 D1A1=32768 D1A2=0 D1A3=1 D1A4=1 D1A5=7")
+        val r = recipe("AAA", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(
+            dynamicRange = DynamicRange.DR400, dRangePriority = DRangePriority.STRONG, grain = Grain(GrainStrength.WEAK, GrainSize.SMALL),
+            colorChrome = Level.STRONG, colorChromeFxBlue = Level.WEAK,
+            whiteBalance = WhiteBalance(WhiteBalanceMode.DAYLIGHT, shiftR = 2, shiftB = -5),
+            highlight = -2.0, shadow = -1.0, color = 2.0, sharpness = 0.0, highIsoNr = -4, clarity = 0.0,
+        ))
+
+        val w = r.toSlotValues(aaa)
+
+        assertSameSettings(aaa, w)
+        assertEquals(emptyList<String>(), w.notes)
+    }
+
+    @Test
+    fun `D Range Priority off is 0, and Off is what a recipe without it gets`() {
+        val strong = recipe("S", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(dRangePriority = DRangePriority.STRONG)).toSlotValues(empty)
+        val off = recipe("O", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(dRangePriority = DRangePriority.OFF)).toSlotValues(empty)
+        val none = recipe("N", FujiFilmSim.CLASSIC_CHROME, RecipeSettings()).toSlotValues(empty)
+
+        assertEquals(2, strong.values.getValue(0xD191).u16(0))
+        assertEquals(0, off.values.getValue(0xD191).u16(0))
+        assertEquals(0, none.values.getValue(0xD191).u16(0))
+    }
+
+    @Test
     fun `what cannot be written is reported as a note`() {
         val r = recipe("T", FujiFilmSim.ACROS_R, RecipeSettings(
-            dynamicRange = DynamicRange.AUTO, dRangePriority = DRangePriority.STRONG,
+            dynamicRange = DynamicRange.AUTO, dRangePriority = DRangePriority.WEAK,
             monochromaticColor = MonochromaticColor(-1, 0), highIsoNr = -2,
         ))
 
         val notes = r.toSlotValues(empty).notes
 
         assertTrue(notes.any { it.contains("Dynamic range auto") })
-        assertTrue(notes.any { it.contains("D Range Priority") })
+        assertTrue(notes.any { it.contains("D Range Priority weak") })
         assertTrue(notes.any { it.contains("Monochromatic") })
         assertTrue(notes.any { it.contains("High ISO NR -2") })
     }
