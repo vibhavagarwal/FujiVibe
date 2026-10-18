@@ -24,6 +24,7 @@ fun Recipe.applyTo(profile: RawConvProfile): RawConvProfile {
     s.color?.let { p = p.with(RawConvProfile.COLOR, it.times10()) }
     s.sharpness?.let { p = p.with(RawConvProfile.SHARPNESS, it.times10()) }
     s.clarity?.let { p = p.with(RawConvProfile.CLARITY, it.times10()) }
+    s.highIsoNr?.let { step -> NoiseReductionCodes.encode(step)?.let { p = p.with(RawConvProfile.NOISE_REDUCTION, it) } }
     return p
 }
 
@@ -39,7 +40,7 @@ fun Recipe.dynamicRangeLimit(profile: RawConvProfile): String? {
     return if (asked > shot) "Dynamic range DR$asked held to DR$shot, as the RAF was shot" else null
 }
 
-private fun DynamicRange.percent(): Int? = when (this) {
+internal fun DynamicRange.percent(): Int? = when (this) {
     DynamicRange.DR100 -> 100
     DynamicRange.DR200 -> 200
     DynamicRange.DR400 -> 400
@@ -48,19 +49,19 @@ private fun DynamicRange.percent(): Int? = when (this) {
 
 /** Settings of this recipe that [applyTo] cannot write yet, by name, so a screen can say so. */
 fun Recipe.unsupportedSettings(): List<String> = buildList {
-    // Noise reduction uses a lookup table not yet known; black-and-white colour shifts have no known position.
-    if (settings.highIsoNr != null) add("High ISO NR")
+    // Black-and-white colour shifts have no known position in the RAW recipe block.
+    if (settings.highIsoNr != null && NoiseReductionCodes.encode(settings.highIsoNr) == null) add("High ISO NR ${settings.highIsoNr}")
     if (settings.monochromaticColor != null) add("Monochromatic colour")
     if (settings.dynamicRange == DynamicRange.AUTO) add("Dynamic range auto")
 }
 
-private fun Double.times10(): Int = (this * 10).roundToInt()
+internal fun Double.times10(): Int = (this * 10).roundToInt()
 
 /** Off, weak, strong are 1, 2, 3 in the camera's block. */
-private fun Level.nativeValue(): Int = ordinal + 1
+internal fun Level.nativeValue(): Int = ordinal + 1
 
 /** Grain is one flat code: off 1, weak small 2, strong small 3, weak large 4, strong large 5. */
-private fun Grain.nativeValue(): Int = when {
+internal fun Grain.nativeValue(): Int = when {
     strength == GrainStrength.OFF -> 1
     size == GrainSize.LARGE -> if (strength == GrainStrength.WEAK) 4 else 5
     else -> if (strength == GrainStrength.WEAK) 2 else 3
@@ -75,7 +76,7 @@ private fun WhiteBalance.applyTo(profile: RawConvProfile): RawConvProfile {
     return p
 }
 
-private fun WhiteBalanceMode.nativeValue(): Int = when (this) {
+internal fun WhiteBalanceMode.nativeValue(): Int = when (this) {
     WhiteBalanceMode.AUTO -> 0x0002
     WhiteBalanceMode.DAYLIGHT -> 0x0004
     WhiteBalanceMode.INCANDESCENT -> 0x0006

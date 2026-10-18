@@ -78,6 +78,7 @@ class RawConvProfile(val bytes: ByteArray) {
         const val SHADOW_TONE = 17
         const val COLOR = 18
         const val SHARPNESS = 19
+        const val NOISE_REDUCTION = 20
         const val COLOR_CHROME_FX_BLUE = 25
         const val CLARITY = 27
     }

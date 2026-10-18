@@ -49,6 +49,7 @@ class RecipeToProfileTest {
         assertEquals(20, p.field(RawConvProfile.COLOR))
         assertEquals(10, p.field(RawConvProfile.SHARPNESS))
         assertEquals(30, p.field(RawConvProfile.CLARITY))
+        assertEquals(0x8000, p.field(RawConvProfile.NOISE_REDUCTION)) // -4
     }
 
     @Test
@@ -115,7 +116,9 @@ class RecipeToProfileTest {
 
     @Test
     fun `settings that cannot be written yet are named`() {
-        assertEquals(listOf("High ISO NR"), kodachrome.unsupportedSettings())
+        assertEquals(emptyList<String>(), kodachrome.unsupportedSettings())
+        val nr2 = kodachrome.copy(settings = RecipeSettings(highIsoNr = -2))
+        assertEquals(listOf("High ISO NR -2"), nr2.unsupportedSettings())
         val mono = kodachrome.copy(settings = RecipeSettings(monochromaticColor = MonochromaticColor(-1, 0), dynamicRange = DynamicRange.AUTO))
         assertTrue(mono.unsupportedSettings().containsAll(listOf("Monochromatic colour", "Dynamic range auto")))
     }

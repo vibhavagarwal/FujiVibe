@@ -105,6 +105,27 @@ class FujiRawSession(
         }
     }
 
+    /**
+     * Writes [values] (property code to bytes) into custom slot [number], reads each back, and
+     * returns the properties that did not read back as written (empty when all did). The slot
+     * that was selected before is selected again.
+     */
+    fun writeSlot(number: Int, values: Map<Int, ByteArray>): List<String> {
+        val before = readProperty(FujiProp.SLOT_SELECT).u16(0)
+        try {
+            writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(number.toByte(), 0))
+            for ((code, data) in values) writeProperty(code, data)
+            return values.mapNotNull { (code, data) ->
+                val now = readProperty(code)
+                if (now.contentEquals(data)) null else "${hex(code)}: wrote ${data.toHex()}, read ${now.toHex()}"
+            }
+        } finally {
+            runCatching { writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(before.toByte(), (before shr 8).toByte())) }
+        }
+    }
+
+    private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
+
     fun close() {
         runCatching { ptp.command(PtpOp.CLOSE_SESSION) }
     }

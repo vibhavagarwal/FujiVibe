@@ -1,0 +1,123 @@
+package com.fujivibe.recipe
+
+import com.fujivibe.camera.FujiFilmSim
+import com.fujivibe.camera.FujiProp
+import com.fujivibe.camera.PtpReader
+import com.fujivibe.camera.SlotDump
+import com.fujivibe.camera.packPtpString
+import com.fujivibe.camera.u16
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+/**
+ * Checked against the real custom slots of the user's X-T5 (read 2026-10-18): the slots hold recipes
+ * the user had already loaded, so a recipe with the same settings must produce the same values.
+ */
+class RecipeToSlotTest {
+
+    /** Builds a slot from the numbers a Read slots log line prints, e.g. "D18E=7 D18F=4 ...". */
+    private fun slot(number: Int, name: String, line: String): SlotDump {
+        val props = linkedMapOf<Int, ByteArray>(FujiProp.SLOT_NAME to packPtpString(name))
+        line.trim().split(" ").forEach {
+            val (code, value) = it.split("=")
+            props[code.toInt(16)] = byteArrayOf(value.toInt().toByte(), (value.toInt() shr 8).toByte())
+        }
+        return SlotDump(number, props)
+    }
+
+    private val portra = slot(2, "PORTRA", "D18E=7 D18F=4 D190=400 D191=0 D192=11 D193=0 D194=0 D195=2 D196=3 D197=2 D198=1 D199=2 D19A=2 D19B=65532 D19C=10000 D19D=65526 D19E=65526 D19F=20 D1A0=65516 D1A1=32768 D1A2=0 D1A3=1 D1A4=1 D1A5=7")
+    private val ccNeg = slot(3, "CC NEG", "D18E=7 D18F=4 D190=400 D191=0 D192=17 D193=0 D194=0 D195=5 D196=3 D197=3 D198=1 D199=2 D19A=4 D19B=65531 D19C=10000 D19D=65516 D19E=10 D19F=40 D1A0=0 D1A1=32768 D1A2=65496 D1A3=1 D1A4=1 D1A5=7")
+    private val koda = slot(4, "KODA64", "D18E=7 D18F=4 D190=400 D191=0 D192=11 D193=0 D194=0 D195=2 D196=3 D197=2 D198=1 D199=4 D19A=2 D19B=65531 D19C=10000 D19D=65516 D19E=65526 D19F=20 D1A0=0 D1A1=32768 D1A2=0 D1A3=1 D1A4=1 D1A5=7")
+    private val empty = slot(5, "", "D18E=7 D18F=2 D190=100 D191=0 D192=1 D193=0 D194=0 D195=6 D196=1 D197=1 D198=1 D199=2 D19A=0 D19B=0 D19C=10000 D19D=0 D19E=0 D19F=0 D1A0=0 D1A1=8192 D1A2=0 D1A3=1 D1A4=1 D1A5=7")
+
+    private fun recipe(name: String, sim: FujiFilmSim, s: RecipeSettings) =
+        Recipe(id = name, name = name, kind = RecipeKind.OWN, baseSimulation = sim, settings = s)
+
+    private fun assertSameSettings(expected: SlotDump, write: SlotWrite) {
+        for (code in 0xD18E..0xD1A5) {
+            assertEquals(expected.value(code), write.values.getValue(code).u16(0), "property ${Integer.toHexString(code).uppercase()}")
+        }
+    }
+
+    @Test
+    fun `Reggie's Portra settings give the values the user's PORTRA slot holds`() {
+        val r = recipe("PORTRA", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(
+            dynamicRange = DynamicRange.DR400, grain = Grain(GrainStrength.WEAK, GrainSize.SMALL),
+            colorChrome = Level.STRONG, colorChromeFxBlue = Level.WEAK,
+            whiteBalance = WhiteBalance(WhiteBalanceMode.AUTO, shiftR = 2, shiftB = -4),
+            highlight = -1.0, shadow = -1.0, color = 2.0, sharpness = -2.0, highIsoNr = -4, clarity = 0.0,
+        ))
+
+        assertSameSettings(portra, r.toSlotValues(portra))
+    }
+
+    @Test
+    fun `a Kodachrome-style daylight recipe gives the values of the KODA64 slot`() {
+        val r = recipe("KODA64", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(
+            dynamicRange = DynamicRange.DR400, grain = Grain(GrainStrength.WEAK, GrainSize.SMALL),
+            colorChrome = Level.STRONG, colorChromeFxBlue = Level.WEAK,
+            whiteBalance = WhiteBalance(WhiteBalanceMode.DAYLIGHT, shiftR = 2, shiftB = -5),
+            highlight = -2.0, shadow = -1.0, color = 2.0, sharpness = 0.0, highIsoNr = -4, clarity = 0.0,
+        ))
+
+        assertSameSettings(koda, r.toSlotValues(koda))
+    }
+
+    @Test
+    fun `a Classic Negative recipe with strong large grain gives the values of the CC NEG slot`() {
+        val r = recipe("CC NEG", FujiFilmSim.CLASSIC_NEG, RecipeSettings(
+            dynamicRange = DynamicRange.DR400, grain = Grain(GrainStrength.STRONG, GrainSize.LARGE),
+            colorChrome = Level.STRONG, colorChromeFxBlue = Level.STRONG,
+            whiteBalance = WhiteBalance(WhiteBalanceMode.AUTO, shiftR = 4, shiftB = -5),
+            highlight = -2.0, shadow = 1.0, color = 4.0, sharpness = 0.0, highIsoNr = -4, clarity = -4.0,
+        ))
+
+        assertSameSettings(ccNeg, r.toSlotValues(ccNeg))
+    }
+
+    @Test
+    fun `a recipe that sets only a film simulation leaves every other setting at the default of an empty slot`() {
+        val r = recipe("VELVIA", FujiFilmSim.VELVIA, RecipeSettings())
+
+        val w = r.toSlotValues(portra) // written over a slot that held a recipe: nothing may be left behind
+
+        assertEquals(FujiFilmSim.VELVIA.code, w.values.getValue(0xD192).u16(0))
+        for (code in listOf(0xD190, 0xD195, 0xD196, 0xD197, 0xD199, 0xD19A, 0xD19B, 0xD19C, 0xD19D, 0xD19E, 0xD19F, 0xD1A0, 0xD1A1, 0xD1A2)) {
+            assertEquals(empty.value(code), w.values.getValue(code).u16(0), "property ${Integer.toHexString(code).uppercase()}")
+        }
+    }
+
+    @Test
+    fun `image size and quality stay as the slot has them`() {
+        val w = recipe("X", FujiFilmSim.PROVIA, RecipeSettings()).toSlotValues(portra)
+
+        assertEquals(7, w.values.getValue(0xD18E).u16(0))
+        assertEquals(4, w.values.getValue(0xD18F).u16(0)) // the user's RAW + JPEG
+    }
+
+    @Test
+    fun `the slot name is capitals and digits, cut to seven`() {
+        assertEquals("REGGIES", recipe("Reggie's Portra", FujiFilmSim.CLASSIC_CHROME, RecipeSettings()).slotName())
+        assertEquals("PACIFIC", recipe("Pacific Blues", FujiFilmSim.CLASSIC_NEG, RecipeSettings()).slotName())
+        assertEquals("KODA64", recipe("Koda64", FujiFilmSim.CLASSIC_CHROME, RecipeSettings()).slotName())
+        assertEquals("RECIPE", recipe("!!!", FujiFilmSim.PROVIA, RecipeSettings()).slotName())
+        val w = recipe("Pacific Blues", FujiFilmSim.CLASSIC_NEG, RecipeSettings()).toSlotValues(empty)
+        assertEquals("PACIFIC", PtpReader(w.values.getValue(FujiProp.SLOT_NAME)).string())
+    }
+
+    @Test
+    fun `what cannot be written is reported as a note`() {
+        val r = recipe("T", FujiFilmSim.ACROS_R, RecipeSettings(
+            dynamicRange = DynamicRange.AUTO, dRangePriority = DRangePriority.STRONG,
+            monochromaticColor = MonochromaticColor(-1, 0), highIsoNr = -2,
+        ))
+
+        val notes = r.toSlotValues(empty).notes
+
+        assertTrue(notes.any { it.contains("Dynamic range auto") })
+        assertTrue(notes.any { it.contains("D Range Priority") })
+        assertTrue(notes.any { it.contains("Monochromatic") })
+        assertTrue(notes.any { it.contains("High ISO NR -2") })
+    }
+}

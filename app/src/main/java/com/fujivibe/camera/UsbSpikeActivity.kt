@@ -32,9 +32,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -55,6 +57,8 @@ import com.fujivibe.recipe.RecipeJson
 import com.fujivibe.recipe.RecipeTextParser
 import com.fujivibe.recipe.applyTo
 import com.fujivibe.recipe.dynamicRangeLimit
+import com.fujivibe.recipe.slotName
+import com.fujivibe.recipe.toSlotValues
 import com.fujivibe.recipe.unsupportedSettings
 import com.fujivibe.ui.theme.FujiVibeTheme
 import com.fujivibe.ui.theme.Ink
@@ -122,6 +126,8 @@ class UsbSpikeActivity : ComponentActivity() {
         var deviceInfo by remember { mutableStateOf<DeviceInfo?>(null) }
         var skipWhiteBalance by remember { mutableStateOf(false) }
         var bisectMode by remember { mutableStateOf(false) }
+        var targetSlot by remember { mutableStateOf<Int?>(null) }
+        var pendingWrite by remember { mutableStateOf<Recipe?>(null) }
         val recipes = remember {
             try {
                 RecipeJson.parse(assets.open("recipes.json").bufferedReader().use { it.readText() })
@@ -305,15 +311,41 @@ class UsbSpikeActivity : ComponentActivity() {
             }
         }
 
+        /** Saves every slot's raw values to a file the app owns, so a write can be undone. */
+        fun backUpSlots(slots: List<SlotDump>): File {
+            val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US).format(java.util.Date())
+            val file = File(getExternalFilesDir(null), "slots-backup-$stamp.txt")
+            file.writeText(slots.joinToString("\n") { it.backupLine() } + "\n")
+            return file
+        }
+
         /** Reads the seven custom slots, logs them, and saves a raw backup. Writes nothing but the slot selector. */
         fun readSlots() = work("Read slots") {
             val s = session ?: error("Connect first")
             val slots = s.readSlots()
             slots.forEach { say(it.describe()) }
-            val stamp = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US).format(java.util.Date())
-            val file = File(getExternalFilesDir(null), "slots-backup-$stamp.txt")
-            file.writeText(slots.joinToString("\n") { it.backupLine() } + "\n")
-            say("Backup saved: ${file.absolutePath}")
+            say("Backup saved: ${backUpSlots(slots).absolutePath}")
+        }
+
+        /**
+         * Backs up all slots, then writes [recipe] into slot [number] and reads it back. Refuses a
+         * slot that has a name, so this test cannot overwrite a recipe the user set up.
+         */
+        fun writeRecipeToSlot(recipe: Recipe, number: Int) = work("Write ${recipe.name} to C$number") {
+            val s = session ?: error("Connect first")
+            val slots = s.readSlots()
+            say("Backup saved: ${backUpSlots(slots).absolutePath}")
+            val target = slots[number - 1]
+            if (target.name.isNotEmpty()) {
+                say("C$number holds \"${target.name}\"; this test writes only to unnamed slots. Nothing written.")
+                return@work
+            }
+            val write = recipe.toSlotValues(target)
+            write.notes.forEach { say("Note: $it") }
+            val mismatches = s.writeSlot(number, write.values)
+            if (mismatches.isEmpty()) say("Wrote ${recipe.slotName()} into C$number; all ${write.values.size} properties read back as written")
+            else mismatches.forEach { say("Mismatch $it") }
+            say(s.readSlots()[number - 1].describe())
         }
 
         /** Every property the camera lists, with the first bytes of its value. */
@@ -368,6 +400,9 @@ class UsbSpikeActivity : ComponentActivity() {
                 OutlinedButton(onClick = { skipWhiteBalance = !skipWhiteBalance }) {
                     Text(if (skipWhiteBalance) "Skip WB: ON" else "Skip WB: off")
                 }
+                OutlinedButton(onClick = { targetSlot = when (val t = targetSlot) { null -> 5; 7 -> null; else -> t + 1 } }) {
+                    Text(targetSlot?.let { "Write to: C$it" } ?: "Write to: none")
+                }
                 OutlinedButton(onClick = { bisectMode = !bisectMode }) {
                     Text(if (bisectMode) "Bisect: ON" else "Bisect: off")
                 }
@@ -388,7 +423,17 @@ class UsbSpikeActivity : ComponentActivity() {
                     OutlinedButton(enabled = !busy, onClick = { develop(sim) }) { Text(sim.label) }
                 }
             }
-            Text("Recipes (${recipes.size}), as published for the X-T5:", color = Paper.copy(alpha = 0.7f), fontSize = 13.sp)
+            pendingWrite?.let { recipe ->
+                val slot = targetSlot ?: 0
+                AlertDialog(
+                    onDismissRequest = { pendingWrite = null },
+                    title = { Text("Write ${recipe.name} to C$slot?") },
+                    text = { Text("The camera's slot C$slot is set to \"${recipe.slotName()}\". A backup of all seven slots is saved first, and a slot that already has a name is left alone.") },
+                    confirmButton = { TextButton(onClick = { pendingWrite = null; writeRecipeToSlot(recipe, slot) }) { Text("Write") } },
+                    dismissButton = { TextButton(onClick = { pendingWrite = null }) { Text("Cancel") } },
+                )
+            }
+            Text("Recipes (${recipes.size}). Write to: picks a camera slot, then a recipe writes there:", color = Paper.copy(alpha = 0.7f), fontSize = 13.sp)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(enabled = !busy, onClick = {
                     val clipboard = getSystemService(ClipboardManager::class.java)
@@ -403,7 +448,13 @@ class UsbSpikeActivity : ComponentActivity() {
                     }
                 }) { Text("Paste recipe") }
                 recipes.forEach { recipe ->
-                    OutlinedButton(enabled = !busy, onClick = { if (bisectMode) bisect(recipe) else develop(null, recipe = recipe) }) { Text(recipe.name) }
+                    OutlinedButton(enabled = !busy, onClick = {
+                        when {
+                            targetSlot != null -> pendingWrite = recipe
+                            bisectMode -> bisect(recipe)
+                            else -> develop(null, recipe = recipe)
+                        }
+                    }) { Text(recipe.name) }
                 }
             }
             Text("Recipe fields (on the RAF's own film simulation):", color = Paper.copy(alpha = 0.7f), fontSize = 13.sp)
