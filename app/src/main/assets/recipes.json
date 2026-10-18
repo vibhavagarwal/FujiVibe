@@ -581,6 +581,73 @@
       "notes": "Dynamic range, white balance shift, Color Chrome, ISO, exposure compensation and compatible cameras are not stated on the page. The page says some settings may not exist on every body. Acros+R and these settings all exist on the X-T5. Same author as Newspaper."
     },
     {
+      "id": "woodland-negative",
+      "name": "Woodland Negative",
+      "kind": "community",
+      "baseSimulation": "classic-neg",
+      "settings": {
+        "dynamicRange": "dr200",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "weak",
+          "size": "small"
+        },
+        "colorChrome": "weak",
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "auto",
+          "kelvin": null,
+          "shiftR": 1,
+          "shiftB": -5
+        },
+        "highlight": 0.5,
+        "shadow": -0.5,
+        "color": 2,
+        "sharpness": -1,
+        "highIsoNr": -4,
+        "clarity": 0
+      },
+      "shootingNotes": {
+        "iso": "Not stated",
+        "exposureCompensation": "0"
+      },
+      "source": {
+        "author": "Justin Gould",
+        "publisher": "film.recipes",
+        "url": "https://film.recipes/2024/03/14/woodland-negative-outdoor-classic-negative/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "nature",
+          "landscape",
+          "autumn-leaves",
+          "flowers",
+          "travel"
+        ],
+        "light": [
+          "overcast",
+          "fog",
+          "shade",
+          "sunny-daylight"
+        ],
+        "mood": [
+          "natural",
+          "warm",
+          "muted",
+          "nostalgic"
+        ]
+      },
+      "avoid": [
+        "scenes where you want the cool, bluish-green Fujicolor print look",
+        "dim indoor light"
+      ],
+      "recommendationText": "A Classic Negative recipe made for walks in woods and green countryside. The strong blue reduction in white balance takes the cool cast Classic Negative gives foliage, so greens look natural and current instead of like an old colour print, while reds stay strong. Richer colour helps on gloomy, wet or overcast days, and it holds up in bright light too. A good outdoor everyday look for forests, parks, flowers and autumn leaves.",
+      "confidence": "medium",
+      "notes": "Written for X-S10 and X-S20 era cameras (X-Trans IV); the page gives no X-Trans V version. Color Chrome FX Blue is already Off, so no change was needed for the X-T5. White balance is Auto with R+1 and B-5; no kelvin value is given. ISO is not stated."
+    },
+    {
       "id": "velvia-vivid",
       "name": "Velvia / Vivid",
       "kind": "stock",
