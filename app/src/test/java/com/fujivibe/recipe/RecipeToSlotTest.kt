@@ -210,13 +210,15 @@ class RecipeToSlotTest {
     }
 
     @Test
-    fun `fluorescent and auto priority modes are written with their codes and flagged until confirmed`() {
+    fun `fluorescent, shade and auto priority modes are written with the codes read from the X-T5`() {
         fun write(mode: WhiteBalanceMode) = recipe("W", FujiFilmSim.ETERNA, RecipeSettings(whiteBalance = WhiteBalance(mode, shiftR = -6, shiftB = -4))).toSlotValues(empty)
 
         assertEquals(0x8003, write(WhiteBalanceMode.FLUORESCENT_3).values.getValue(0xD199).u16(0))
         assertEquals(0x8002, write(WhiteBalanceMode.FLUORESCENT_2).values.getValue(0xD199).u16(0))
+        assertEquals(0x8001, write(WhiteBalanceMode.FLUORESCENT_1).values.getValue(0xD199).u16(0))
+        assertEquals(0x8006, write(WhiteBalanceMode.SHADE).values.getValue(0xD199).u16(0))
         assertEquals(0x8020, write(WhiteBalanceMode.AUTO_WHITE_PRIORITY).values.getValue(0xD199).u16(0))
-        assertTrue(write(WhiteBalanceMode.FLUORESCENT_3).notes.any { it.contains("not yet confirmed") })
-        assertEquals(emptyList<String>(), write(WhiteBalanceMode.DAYLIGHT).notes)
+        assertEquals(0x8021, write(WhiteBalanceMode.AUTO_AMBIENCE_PRIORITY).values.getValue(0xD199).u16(0))
+        assertEquals(emptyList<String>(), write(WhiteBalanceMode.FLUORESCENT_3).notes)
     }
 }

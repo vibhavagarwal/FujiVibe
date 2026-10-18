@@ -1064,7 +1064,7 @@
       ],
       "recommendationText": "Modelled on tungsten-balanced cinema film, so it turns artificial light into a cool, cinematic palette with heavy grain and soft highlights. The author uses it mostly after dark, where streetlights and signs stay moody rather than orange. In daylight it throws a strong blue cast.",
       "confidence": "high",
-      "notes": "Shadow was corrected from +0 to +2 on 17 Apr 2024. The author took the night samples with a 5% CineBloom filter. The Fluorescent 3 white balance code is not yet confirmed on the X-T5. Clarity -5 is not written; a 20% CineBloom is the stand-in."
+      "notes": "Shadow was corrected from +0 to +2 on 17 Apr 2024. The author took the night samples with a 5% CineBloom filter. Clarity -5 is not written; a 20% CineBloom is the stand-in."
     },
     {
       "id": "expired-ecn-2-100t",
@@ -1189,7 +1189,7 @@
       ],
       "recommendationText": "A night recipe that behaves like a tungsten-balanced film without copying any one stock. Under fluorescent and other artificial lights the result runs warm or cool with the bulb. In daylight it is still usable, with a cool retro cast and strong blues.",
       "confidence": "high",
-      "notes": "The Fluorescent 2 white balance code is not yet confirmed on the X-T5. Clarity -3 is not written; a 10% CineBloom is the stand-in."
+      "notes": "Clarity -3 is not written; a 10% CineBloom is the stand-in."
     },
     {
       "id": "kodak-gold-200",
@@ -1703,7 +1703,7 @@
       ],
       "recommendationText": "A versatile Provia-based colour recipe the author calls his favourite; punchy yet clean, good for landscapes, still life and street. It needs the Auto White Priority white balance for the intended result.",
       "confidence": "high",
-      "notes": "The Auto White Priority code is not yet confirmed on the X-T5. Clarity +2 is not written (it slows saving), so expect a little less bite."
+      "notes": "Clarity +2 is not written (it slows saving), so expect a little less bite."
     },
     {
       "id": "kodak-ektachrome-e100vs-v2",

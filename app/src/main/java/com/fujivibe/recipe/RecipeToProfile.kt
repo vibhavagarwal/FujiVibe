@@ -77,9 +77,8 @@ private fun WhiteBalance.applyTo(profile: RawConvProfile): RawConvProfile {
 }
 
 /**
- * The camera's code for a white balance mode. Auto, Daylight, Incandescent, Shade and Kelvin were read from
- * the user's X-T5. The fluorescent and auto-priority codes are guesses (from other Fuji cameras' tables) until
- * they are read from a slot set to that mode on the camera: see [isConfirmed].
+ * The camera's code for a white balance mode. Auto, Daylight, Kelvin, Shade, the three Fluorescents and the two
+ * Auto priorities were read from slots the user set on an X-T5 (Incandescent comes from the RAW block's table).
  */
 internal fun WhiteBalanceMode.nativeValue(): Int = when (this) {
     WhiteBalanceMode.AUTO -> 0x0002
@@ -93,14 +92,6 @@ internal fun WhiteBalanceMode.nativeValue(): Int = when (this) {
     WhiteBalanceMode.AUTO_WHITE_PRIORITY -> 0x8020
     WhiteBalanceMode.AUTO_AMBIENCE_PRIORITY -> 0x8021
 }
-
-/** Whether the mode's code has been read from the user's X-T5. */
-internal val WhiteBalanceMode.isConfirmed: Boolean
-    get() = when (this) {
-        WhiteBalanceMode.FLUORESCENT_1, WhiteBalanceMode.FLUORESCENT_2, WhiteBalanceMode.FLUORESCENT_3,
-        WhiteBalanceMode.AUTO_WHITE_PRIORITY, WhiteBalanceMode.AUTO_AMBIENCE_PRIORITY -> false
-        else -> true
-    }
 
 /** The mode as the camera's menu names it. */
 fun WhiteBalanceMode.label(): String = when (this) {

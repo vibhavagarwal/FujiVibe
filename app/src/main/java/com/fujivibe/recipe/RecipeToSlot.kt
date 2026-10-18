@@ -73,9 +73,6 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     // (seen on an X-T5), so mode, then temperature, then the shifts.
     v[0xD199] = u16(wb?.mode?.nativeValue() ?: 2)
     if (wb != null && wb.mode == null) notes += "White balance mode not given; Auto used"
-    if (wb?.mode != null && !wb.mode.isConfirmed) {
-        notes += "White balance ${wb.mode.label()} is written with a code not yet confirmed on an X-T5; check the slot shows ${wb.mode.label()}"
-    }
     // The temperature is only accepted in the kelvin mode.
     if (wb?.mode == WhiteBalanceMode.KELVIN) v[0xD19C] = u16(wb.kelvin ?: 10000) else keep(0xD19C, 10000)
     v[0xD19A] = u16((wb?.shiftR ?: 0).signed16())
