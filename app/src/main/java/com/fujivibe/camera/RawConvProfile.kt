@@ -49,7 +49,8 @@ class RawConvProfile(val bytes: ByteArray) {
         append("size=${field(IMAGE_SIZE)} quality=${field(IMAGE_QUALITY)} ")
         append("film=${hex(field(FILM_SIMULATION))} ")
         append("dr=${field(DYNAMIC_RANGE)} grain=${field(GRAIN)} chrome=${field(COLOR_CHROME)} ")
-        append("wb=${hex(field(WHITE_BALANCE))} shiftR=${field(WB_SHIFT_R)} shiftB=${field(WB_SHIFT_B)} ")
+        append("wb=${hex(field(WHITE_BALANCE))} temp=${field(WB_COLOR_TEMP)} shiftR=${field(WB_SHIFT_R)} shiftB=${field(WB_SHIFT_B)} ")
+        append("chromeBlue=${field(COLOR_CHROME_FX_BLUE)} ")
         append("hl=${field(HIGHLIGHT_TONE)} sh=${field(SHADOW_TONE)} color=${field(COLOR)}")
     }
 

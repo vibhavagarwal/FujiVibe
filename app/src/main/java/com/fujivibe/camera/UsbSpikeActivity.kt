@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.fujivibe.recipe.Recipe
+import com.fujivibe.recipe.RecipeSettings
 import com.fujivibe.recipe.RecipeJson
 import com.fujivibe.recipe.RecipeTextParser
 import com.fujivibe.recipe.applyTo
@@ -118,6 +119,8 @@ class UsbSpikeActivity : ComponentActivity() {
         var result by remember { mutableStateOf<Bitmap?>(null) }
         var fullSize by remember { mutableStateOf(true) }
         var deviceInfo by remember { mutableStateOf<DeviceInfo?>(null) }
+        var skipWhiteBalance by remember { mutableStateOf(false) }
+        var bisectMode by remember { mutableStateOf(false) }
         val recipes = remember {
             try {
                 RecipeJson.parse(assets.open("recipes.json").bufferedReader().use { it.readText() })
@@ -179,29 +182,15 @@ class UsbSpikeActivity : ComponentActivity() {
             }
         }
 
-        fun develop(sim: FujiFilmSim?, tweak: Tweak? = null, recipe: Recipe? = null) =
-            work("Develop ${recipe?.name ?: tweak?.label ?: sim?.label ?: "as shot"}") {
-            recipe?.unsupportedSettings()?.takeIf { it.isNotEmpty() }?.let { say("Not applied yet: ${it.joinToString()}") }
-            val s = session ?: error("Connect first")
-            val bytes = raf ?: error("Pick a RAF first")
-            if (!uploaded) {
-                val t0 = System.currentTimeMillis()
-                s.upload(bytes)
-                uploaded = true
-                say("Upload: ${System.currentTimeMillis() - t0} ms")
-            }
+        /** Renders with [edit] applied to the RAF's recipe, logs the size, saves the JPEG as [stem], and shows it. */
+        fun renderAndSave(s: FujiRawSession, stem: String, edit: (RawConvProfile) -> RawConvProfile) {
             val t1 = System.currentTimeMillis()
-            val jpeg = s.render {
-                val withSim = if (sim == null) it else it.withFilmSimulation(sim.code)
-                val withTweak = if (tweak == null) withSim else tweak.edit(withSim)
-                val edited = if (recipe == null) withTweak else recipe.applyTo(it)
-                (if (fullSize) edited.withFullSize() else edited).also { sent -> say("Sending: ${sent.describe()}") }
-            }
+            val jpeg = s.render { edit(it).let { p -> if (fullSize) p.withFullSize() else p }.also { sent -> say("Sending: ${sent.describe()}") } }
             say("Render + download: ${System.currentTimeMillis() - t1} ms, ${jpeg.size / 1024} KB")
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, bounds)
             say("Result is ${bounds.outWidth} x ${bounds.outHeight} px")
-            val fileName = "${rafName ?: "raf"}-${recipe?.id ?: tweak?.name ?: sim?.name ?: "AS_SHOT"}.jpg"
+            val fileName = "${rafName ?: "raf"}-$stem.jpg"
             File(getExternalFilesDir(null), fileName).writeBytes(jpeg)
             // Also into Pictures, so the Photos app shows it without a trip to the PC.
             val values = ContentValues().apply {
@@ -217,6 +206,58 @@ class UsbSpikeActivity : ComponentActivity() {
                 say("Could not save to Pictures")
             }
             result = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, BitmapFactory.Options().apply { inSampleSize = 4 })
+        }
+
+        /** Uploads the RAF if the camera does not have it yet. */
+        fun ensureUploaded(): FujiRawSession {
+            val s = session ?: error("Connect first")
+            val bytes = raf ?: error("Pick a RAF first")
+            if (!uploaded) {
+                val t0 = System.currentTimeMillis()
+                s.upload(bytes)
+                uploaded = true
+                say("Upload: ${System.currentTimeMillis() - t0} ms")
+            }
+            return s
+        }
+
+        fun develop(sim: FujiFilmSim?, tweak: Tweak? = null, recipe: Recipe? = null) =
+            work("Develop ${recipe?.name ?: tweak?.label ?: sim?.label ?: "as shot"}") {
+                recipe?.unsupportedSettings()?.takeIf { it.isNotEmpty() }?.let { say("Not applied yet: ${it.joinToString()}") }
+                val s = ensureUploaded()
+                // Dropping the white balance isolates whether it is what tints a result.
+                val used = if (recipe != null && skipWhiteBalance) recipe.copy(settings = recipe.settings.copy(whiteBalance = null)) else recipe
+                renderAndSave(s, recipe?.id ?: tweak?.name ?: sim?.name ?: "AS_SHOT") {
+                    val withSim = if (sim == null) it else it.withFilmSimulation(sim.code)
+                    val withTweak = if (tweak == null) withSim else tweak.edit(withSim)
+                    if (used == null) withTweak else used.applyTo(it)
+                }
+            }
+
+        /**
+         * Renders [recipe] whole, then once per setting group with just that group left out, so
+         * whichever omission changes a result the most shows what is behind it.
+         */
+        fun bisect(recipe: Recipe) = work("Bisect ${recipe.name}") {
+            val s = ensureUploaded()
+            val st = recipe.settings
+            val groups = listOf<Pair<String, RecipeSettings>>(
+                "no-dr" to st.copy(dynamicRange = null, dRangePriority = null),
+                "no-grain" to st.copy(grain = null),
+                "no-chrome" to st.copy(colorChrome = null),
+                "no-chromeblue" to st.copy(colorChromeFxBlue = null),
+                "no-wb" to st.copy(whiteBalance = null),
+                "no-highlight" to st.copy(highlight = null),
+                "no-shadow" to st.copy(shadow = null),
+                "no-color" to st.copy(color = null),
+                "no-sharpness" to st.copy(sharpness = null),
+                "no-clarity" to st.copy(clarity = null),
+            ).filter { it.second != st } // a group the recipe does not set changes nothing
+            renderAndSave(s, "${recipe.id}-all") { recipe.applyTo(it) }
+            for ((name, without) in groups) {
+                say("Leaving out: $name")
+                renderAndSave(s, "${recipe.id}-$name") { recipe.copy(settings = without).applyTo(it) }
+            }
         }
 
         /** Renders once per image-size code and logs the pixel size each gave, to learn what the codes mean. Saves nothing. */
@@ -311,6 +352,12 @@ class UsbSpikeActivity : ComponentActivity() {
                 OutlinedButton(onClick = { fullSize = !fullSize }) {
                     Text(if (fullSize) "Full size: ON" else "Full size: off")
                 }
+                OutlinedButton(onClick = { skipWhiteBalance = !skipWhiteBalance }) {
+                    Text(if (skipWhiteBalance) "Skip WB: ON" else "Skip WB: off")
+                }
+                OutlinedButton(onClick = { bisectMode = !bisectMode }) {
+                    Text(if (bisectMode) "Bisect: ON" else "Bisect: off")
+                }
                 OutlinedButton(enabled = !busy, onClick = { probeSizes() }) { Text("Probe sizes") }
                 OutlinedButton(enabled = !busy, onClick = { probeField(0, 0..6) }) { Text("Probe p0") }
                 OutlinedButton(enabled = !busy, onClick = { probeField(4, 0..6) }) { Text("Probe p4") }
@@ -342,7 +389,7 @@ class UsbSpikeActivity : ComponentActivity() {
                     }
                 }) { Text("Paste recipe") }
                 recipes.forEach { recipe ->
-                    OutlinedButton(enabled = !busy, onClick = { develop(null, recipe = recipe) }) { Text(recipe.name) }
+                    OutlinedButton(enabled = !busy, onClick = { if (bisectMode) bisect(recipe) else develop(null, recipe = recipe) }) { Text(recipe.name) }
                 }
             }
             Text("Recipe fields (on the RAF's own film simulation):", color = Paper.copy(alpha = 0.7f), fontSize = 13.sp)

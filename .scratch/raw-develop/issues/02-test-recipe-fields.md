@@ -27,6 +27,20 @@ settings not applied. Results saved to Pictures/RAF Spike, named after the RAF a
 | Grain (9; 5 = strong large) | Probably applied: fine texture changes, hard to see at normal size; judge at 100% on a flat area |
 | Highlight tone (16, times 10) | Not a valid test: the RAF already had -2, so sending -2 changed nothing. Retest with a different value |
 
+### Recipes tried on DSCF2191 (a green forest railing), same day
+
+- Newspaper (Acros + Ye, highlight +4, shadow +4, strong grain): gritty black and white, as intended.
+- Kodachrome 64 and Reggie's Portra: natural, muted colour; subtly different from each other.
+- Pacific Blues: very green, even the grey gravel. A leave-one-out bisect (spike, Bisect switch)
+  showed that **only leaving out Dynamic Range DR400 gave a normal picture**; leaving out
+  colour, Color Chrome, FX Blue, white balance (5800K with shifts), grain, tone, sharpness or clarity
+  did not. So those fields' encodings produce plausible results, and DR400 is the culprit.
+- Hypothesis: the camera limits Dynamic Range by ISO (in the camera DR200 needs ISO 400 or more and
+  DR400 needs 800 or more), and DR400 sent for a RAF shot at a lower ISO gives this tinted result.
+  Not yet confirmed: the ISO of DSCF2191 is unknown, and no high-ISO RAF has been tried. If the
+  hypothesis holds, `applyTo` needs the RAF's ISO and must clamp DR (400 to 200 to 100) to what the
+  ISO allows. The RAF's ISO can be read from its embedded JPEG's EXIF.
+
 Still untested: white balance mode, kelvin and the R/B shifts (12 to 15), Color (18), Sharpness (19),
 Clarity (27), Color Chrome FX Blue (25), D Range Priority (7), and highlight with a value other
 than the RAF's own. The recipe buttons in the spike exercise most of these at once.
