@@ -45,3 +45,16 @@ class SlotDump(val number: Int, val props: Map<Int, ByteArray>) {
     }
 }
 
+
+/** What a slot write did: settings the camera refused, and settings that did not read back as written. */
+class SlotWriteResult(val written: Int, val rejected: List<String>, val mismatches: List<String>) {
+    val ok get() = rejected.isEmpty() && mismatches.isEmpty()
+}
+
+/** The part of the camera the slot loader needs, so it can be tested without one. */
+interface SlotCamera {
+    fun readSlots(): List<SlotDump>
+
+    /** Writes [values] into slot [number], skipping what [current] already holds; see [FujiRawSession.writeSlot]. */
+    fun writeSlot(number: Int, values: Map<Int, ByteArray>, current: Map<Int, ByteArray> = emptyMap()): SlotWriteResult
+}

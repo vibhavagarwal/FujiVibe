@@ -10,7 +10,7 @@ package com.fujivibe.camera
 class FujiRawSession(
     private val ptp: PtpConnection,
     private val log: (String) -> Unit = {},
-) {
+) : SlotCamera {
     /** The recipe the camera read from the RAF just uploaded, or null before an upload. */
     var baseProfile: RawConvProfile? = null
         private set
@@ -84,7 +84,7 @@ class FujiRawSession(
      * Reads all seven custom slots: selects each, reads its name and settings, then selects the slot
      * that was selected before. The only thing written is the slot selector.
      */
-    fun readSlots(): List<SlotDump> {
+    override fun readSlots(): List<SlotDump> {
         val before = readProperty(FujiProp.SLOT_SELECT).u16(0)
         try {
             return (1..SLOT_COUNT).map { number ->
@@ -105,11 +105,6 @@ class FujiRawSession(
         }
     }
 
-    /** What a slot write did: settings the camera refused, and settings that did not read back as written. */
-    class SlotWriteResult(val written: Int, val rejected: List<String>, val mismatches: List<String>) {
-        val ok get() = rejected.isEmpty() && mismatches.isEmpty()
-    }
-
     /**
      * Writes [values] (property code to bytes) into custom slot [number], skipping any that already
      * equal what [current] holds (an unchanged setting need not be written, and some, such as
@@ -117,7 +112,7 @@ class FujiRawSession(
      * camera refuses with "invalid value" is reported and the rest carry on. Everything written is read
      * back. The slot selected before is selected again.
      */
-    fun writeSlot(number: Int, values: Map<Int, ByteArray>, current: Map<Int, ByteArray> = emptyMap()): SlotWriteResult {
+    override fun writeSlot(number: Int, values: Map<Int, ByteArray>, current: Map<Int, ByteArray>): SlotWriteResult {
         val before = readProperty(FujiProp.SLOT_SELECT).u16(0)
         try {
             writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(number.toByte(), 0))

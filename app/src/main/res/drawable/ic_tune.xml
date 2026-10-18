@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- Three sliders with their knobs, drawn as strokes so the icon's tint colours it. -->
+  <path
+      android:fillColor="#00000000"
+      android:strokeColor="@android:color/white"
+      android:strokeWidth="1.8"
+      android:strokeLineCap="round"
+      android:pathData="M4,7H9M15,7H20M4,12H13M18,12H20M4,17H6M12,17H20" />
+  <path
+      android:fillColor="#00000000"
+      android:strokeColor="@android:color/white"
+      android:strokeWidth="1.8"
+      android:pathData="M12,7A2.2,2.2 0 1 1 12,7.01M15.5,12A2.2,2.2 0 1 1 15.5,12.01M9,17A2.2,2.2 0 1 1 9,17.01" />
+</vector>

@@ -188,6 +188,7 @@ fun ViewfinderScreen(
     onCaptured: (captureId: Long, developNow: Boolean) -> Unit,
     onOpenRoll: () -> Unit,
     onOpenLibrary: () -> Unit,
+    onOpenCameraRecipes: () -> Unit,
     lensFacing: Int,
     onLensFacingChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -546,6 +547,9 @@ fun ViewfinderScreen(
                 onLibraryClick = {
                     // Not mid-capture: leaving would drop the shot that's being taken.
                     if (countdown == null && !isCapturing) onOpenLibrary()
+                },
+                onCameraRecipesClick = {
+                    if (countdown == null && !isCapturing) onOpenCameraRecipes()
                 },
                 modifier = Modifier.align(Alignment.TopCenter),
             )

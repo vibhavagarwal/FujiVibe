@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Recipes reach the X-T5 by being written into its custom slots over USB
@@ -30,3 +30,10 @@ camera in its USB RAW CONV./BACKUP RESTORE mode.
   recipe set already carries best-use tags and a recommendation text) could later suggest the seven
   for a trip or a scene.
 - The protocol is unofficial and could change with camera firmware.
+
+**Verified 2026-10-18 on the user's X-T5 (firmware 4.31):** the slots were read and their encodings
+matched against recipes the user already had in C2 to C4; Pacific Blues was written to C7 and read
+back, and the camera's own menu agreed. Two lessons: a colour film simulation refuses the
+monochrome-colour properties (invalid value), so only settings that differ are written; and writing
+the white balance temperature resets the shifts, so the order is mode, temperature, then shifts.
+

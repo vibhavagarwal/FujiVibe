@@ -1,6 +1,6 @@
 # 03 - Write a Recipe into a chosen slot and read it back
 
-Status: needs-testing
+Status: resolved
 Type: task
 
 Translate a Recipe (com.fujivibe.recipe) into slot values, write to a slot the user picked, read it
@@ -33,5 +33,8 @@ One flaw: the white balance shifts (D19A R+1, D19B B-3) read 0 in a later read. 
 after each write had passed, so writing the temperature afterwards (it came after the shifts)
 probably reset them. Fixed: mode, then temperature, then shifts; and the read-back now happens once,
 after all the writing, so such side effects are caught.
+
+Result: the retry wrote and verified Pacific Blues in C7, and the user confirmed the slot (and the
+corrected white balance shifts) on the camera.
 
 ## Comments
