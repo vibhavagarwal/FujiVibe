@@ -51,11 +51,13 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     v[0xD197] = u16(s.colorChromeFxBlue?.nativeValue() ?: 1)
     keep(0xD198, 1) // smooth skin
     val wb = s.whiteBalance
+    // The order matters: the camera drops the shifts when the temperature is written after them
+    // (seen on an X-T5), so mode, then temperature, then the shifts.
     v[0xD199] = u16(wb?.mode?.nativeValue() ?: 2)
     if (wb != null && wb.mode == null) notes += "White balance mode not given; Auto used"
+    v[0xD19C] = u16(wb?.kelvin ?: 10000)
     v[0xD19A] = u16((wb?.shiftR ?: 0).signed16())
     v[0xD19B] = u16((wb?.shiftB ?: 0).signed16())
-    v[0xD19C] = u16(wb?.kelvin ?: 10000)
     v[0xD19D] = u16((s.highlight?.times10() ?: 0).signed16())
     v[0xD19E] = u16((s.shadow?.times10() ?: 0).signed16())
     v[0xD19F] = u16((s.color?.times10() ?: 0).signed16())

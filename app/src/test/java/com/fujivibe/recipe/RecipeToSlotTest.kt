@@ -89,6 +89,19 @@ class RecipeToSlotTest {
     }
 
     @Test
+    fun `white balance temperature is written before the shifts, which it would otherwise reset`() {
+        val r = recipe("P", FujiFilmSim.CLASSIC_NEG, RecipeSettings(
+            whiteBalance = WhiteBalance(WhiteBalanceMode.KELVIN, kelvin = 5800, shiftR = 1, shiftB = -3),
+        ))
+
+        val order = r.toSlotValues(empty).values.keys.toList()
+
+        assertTrue(order.indexOf(0xD199) < order.indexOf(0xD19C))
+        assertTrue(order.indexOf(0xD19C) < order.indexOf(0xD19A))
+        assertTrue(order.indexOf(0xD19C) < order.indexOf(0xD19B))
+    }
+
+    @Test
     fun `image size and quality stay as the slot has them`() {
         val w = recipe("X", FujiFilmSim.PROVIA, RecipeSettings()).toSlotValues(portra)
 

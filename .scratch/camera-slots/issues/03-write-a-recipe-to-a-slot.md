@@ -25,4 +25,13 @@ written again. A Restore button puts a slot back from the oldest backup file.
 Other settings are probably conditional the same way (FilmKit: colour temperature only in the
 kelvin mode, colour on monochrome sims), so expect a few "Camera refused" lines to appear.
 
+## Second test, 2026-10-18
+
+Writing Pacific Blues to C7 worked: 12 settings written (the rest already matched), and every
+property read back as written, including the 5800K kelvin white balance (mode 0x8007, D19C=5800).
+One flaw: the white balance shifts (D19A R+1, D19B B-3) read 0 in a later read. A read straight
+after each write had passed, so writing the temperature afterwards (it came after the shifts)
+probably reset them. Fixed: mode, then temperature, then shifts; and the read-back now happens once,
+after all the writing, so such side effects are caught.
+
 ## Comments

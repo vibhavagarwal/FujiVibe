@@ -122,20 +122,25 @@ class FujiRawSession(
         try {
             writeProperty(FujiProp.SLOT_SELECT, byteArrayOf(number.toByte(), 0))
             val rejected = mutableListOf<String>()
-            val mismatches = mutableListOf<String>()
             var written = 0
+            val refused = mutableSetOf<Int>()
             for ((code, data) in values) {
                 if (current[code]?.contentEquals(data) == true) continue
                 try {
                     writeProperty(code, data)
+                    written++
                 } catch (e: PtpException) {
                     if (e.responseCode != PtpResp.INVALID_DEVICE_PROP_VALUE) throw e
                     rejected += "${hex(code)} (wanted ${data.toHex()})"
-                    continue
+                    refused += code
                 }
-                written++
+            }
+            // Read everything back only once all the writing is done: writing one setting can change another
+            // (a white balance temperature resets the shifts), which a read straight after each write misses.
+            val mismatches = values.mapNotNull { (code, data) ->
+                if (code in refused) return@mapNotNull null
                 val now = readProperty(code)
-                if (!now.contentEquals(data)) mismatches += "${hex(code)}: wrote ${data.toHex()}, read ${now.toHex()}"
+                if (now.contentEquals(data)) null else "${hex(code)}: wrote ${data.toHex()}, read ${now.toHex()}"
             }
             return SlotWriteResult(written, rejected, mismatches)
         } finally {
