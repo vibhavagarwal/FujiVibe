@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,6 +62,7 @@ fun CameraRecipesScreen(model: CameraRecipesModel, onBack: () -> Unit, modifier:
     var picking by remember { mutableStateOf<Int?>(null) }
     var confirmLoad by remember { mutableStateOf(false) }
     var adding by remember { mutableStateOf(false) }
+    var showRaw by remember { mutableStateOf(false) }
 
     Column(modifier.fillMaxSize().safeDrawingPadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -110,6 +112,16 @@ fun CameraRecipesScreen(model: CameraRecipesModel, onBack: () -> Unit, modifier:
                 }
             }
             item { OutlinedButton(onClick = { adding = true }, enabled = !model.busy) { Text("Add a recipe from text") } }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    TextButton(onClick = { showRaw = !showRaw }, enabled = model.slots.isNotEmpty()) {
+                        Text(if (showRaw) "Hide the camera's raw slot values" else "Show the camera's raw slot values")
+                    }
+                    if (showRaw) model.slots.forEach {
+                        Text(it.describe(), color = PaperMuted, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                    }
+                }
+            }
             model.report?.let { report ->
                 item { Text("Backup saved first: ${report.backup.name}", color = PaperMuted, fontSize = 12.sp) }
                 items(report.outcomes) { Outcome(it) }

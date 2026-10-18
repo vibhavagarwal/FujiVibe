@@ -36,8 +36,10 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     v[FujiProp.SLOT_NAME] = packPtpString(slotName())
     keep(0xD18E, 7) // image size
     keep(0xD18F, 2) // image quality
-    v[0xD190] = u16(s.dynamicRange?.percent() ?: 100)
-    if (s.dynamicRange == DynamicRange.AUTO) notes += "Dynamic range auto is not written (left at DR100)"
+    // With D Range Priority on, the camera refuses the Dynamic Range and the highlight and shadow tone
+    // (they are replaced by it), so those are left as the slot has them. It is written first so that,
+    // when it is being turned off, they are free to be written afterwards.
+    val priorityOn = s.dRangePriority != null && s.dRangePriority != DRangePriority.OFF
     // D Range Priority: Off 0, Weak 1, Strong 2, Auto 0x8000, read from slots the user set to each.
     v[0xD191] = u16(
         when (s.dRangePriority) {
@@ -47,6 +49,8 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
             DRangePriority.AUTO -> 0x8000
         },
     )
+    if (priorityOn) keep(0xD190, 100) else v[0xD190] = u16(s.dynamicRange?.percent() ?: 100)
+    if (s.dynamicRange == DynamicRange.AUTO) notes += "Dynamic range auto is not written (left at DR100)"
     v[0xD192] = u16(baseSimulation.code)
     // A colour simulation refuses the monochrome colour settings, even with their own value.
     if (baseSimulation.isMonochrome) {
@@ -73,8 +77,13 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     if (wb?.mode == WhiteBalanceMode.KELVIN) v[0xD19C] = u16(wb.kelvin ?: 10000) else keep(0xD19C, 10000)
     v[0xD19A] = u16((wb?.shiftR ?: 0).signed16())
     v[0xD19B] = u16((wb?.shiftB ?: 0).signed16())
-    v[0xD19D] = u16((s.highlight?.times10() ?: 0).signed16())
-    v[0xD19E] = u16((s.shadow?.times10() ?: 0).signed16())
+    if (priorityOn) {
+        keep(0xD19D, 0)
+        keep(0xD19E, 0)
+    } else {
+        v[0xD19D] = u16((s.highlight?.times10() ?: 0).signed16())
+        v[0xD19E] = u16((s.shadow?.times10() ?: 0).signed16())
+    }
     // A black-and-white simulation refuses Color.
     if (baseSimulation.isMonochrome) keep(0xD19F, 0) else v[0xD19F] = u16((s.color?.times10() ?: 0).signed16())
     v[0xD1A0] = u16((s.sharpness?.times10() ?: 0).signed16())

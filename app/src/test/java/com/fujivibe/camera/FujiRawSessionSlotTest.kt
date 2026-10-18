@@ -1,5 +1,6 @@
 package com.fujivibe.camera
 
+import com.fujivibe.recipe.DRangePriority
 import com.fujivibe.recipe.DynamicRange
 import com.fujivibe.recipe.Grain
 import com.fujivibe.recipe.GrainSize
@@ -60,6 +61,8 @@ class FujiRawSessionSlotTest {
                 0xD19F -> if (isMono(value(0xD192))) return PtpResp.INVALID_DEVICE_PROP_VALUE
                 0xD193, 0xD194 -> if (!isMono(value(0xD192))) return PtpResp.INVALID_DEVICE_PROP_VALUE
                 0xD199 -> if (value != value(0xD199)) { slot()[0xD19A] = u16(0); slot()[0xD19B] = u16(0) }
+                // With D Range Priority on, Dynamic Range and the highlight and shadow tone are disabled.
+                0xD190, 0xD19D, 0xD19E -> if (value(0xD191) != 0) return PtpResp.INVALID_DEVICE_PROP_VALUE
             }
             slot()[code] = data
             return PtpResp.OK
@@ -201,5 +204,56 @@ class FujiRawSessionSlotTest {
         write(s, camera, pacific, 6)
 
         assertEquals(3, camera.selected)
+    }
+
+    private val woodland = recipe(
+        FujiFilmSim.CLASSIC_NEG,
+        RecipeSettings(
+            dynamicRange = DynamicRange.DR200, grain = Grain(GrainStrength.WEAK, GrainSize.SMALL), colorChrome = Level.WEAK,
+            colorChromeFxBlue = Level.OFF, whiteBalance = WhiteBalance(WhiteBalanceMode.AUTO, shiftR = 1, shiftB = -5),
+            highlight = 0.5, shadow = -0.5, color = 2.0, sharpness = -1.0, highIsoNr = -4, clarity = 0.0,
+        ),
+    )
+
+    private val arizona = recipe(
+        FujiFilmSim.CLASSIC_CHROME,
+        RecipeSettings(
+            dRangePriority = DRangePriority.STRONG, grain = Grain(GrainStrength.WEAK, GrainSize.SMALL), colorChrome = Level.OFF,
+            colorChromeFxBlue = Level.WEAK, whiteBalance = WhiteBalance(WhiteBalanceMode.KELVIN, 4350, 6, -8),
+            color = 4.0, sharpness = -2.0, highIsoNr = -4, clarity = -3.0,
+        ),
+    )
+
+    @Test
+    fun `a recipe is written over a slot that still has D Range Priority on, with no refusals`() {
+        val camera = FakeFuji()
+        camera.slots[5][0xD191] = u16(0x8000) // left on by an earlier test
+        camera.slots[5][0xD190] = u16(400)
+        val s = session(camera)
+
+        val result = write(s, camera, woodland, 5)
+
+        assertEquals(emptyList<String>(), result.rejected)
+        assertTrue(result.ok, result.mismatches.toString())
+        camera.selected = 5
+        assertEquals(0, camera.value(0xD191))
+        assertEquals(200, camera.value(0xD190))
+    }
+
+    @Test
+    fun `a D Range Priority recipe is written over a slot with tone set, with no refusals`() {
+        val camera = FakeFuji()
+        val s = session(camera)
+        write(s, camera, woodland, 3) // highlight +0.5, shadow -0.5, DR200
+
+        val result = write(s, camera, arizona, 3)
+
+        assertEquals(emptyList<String>(), result.rejected)
+        assertTrue(result.ok, result.mismatches.toString())
+        camera.selected = 3
+        assertEquals(2, camera.value(0xD191))
+        assertEquals(0x8007, camera.value(0xD199))
+        assertEquals(4350, camera.value(0xD19C))
+        assertEquals(6, camera.value(0xD19A))
     }
 }
