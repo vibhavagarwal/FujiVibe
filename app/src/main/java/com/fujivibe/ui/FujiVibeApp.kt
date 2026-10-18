@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.fujivibe.camera.CameraConnector
+import com.fujivibe.camera.LoadHistoryStore
 import com.fujivibe.camera.SlotPlanStore
 import com.fujivibe.capture.CaptureStore
 import com.fujivibe.recipe.RecipeLibrary
@@ -33,7 +34,9 @@ import com.fujivibe.review.SavedLooks
 import com.fujivibe.ui.review.ReviewScreen
 import com.fujivibe.ui.roll.RollScreen
 import com.fujivibe.ui.theme.FujiVibeTheme
+import com.fujivibe.ui.settings.SettingsScreen
 import com.fujivibe.ui.theme.Ink
+import com.fujivibe.ui.theme.ReadoutTheme
 import com.fujivibe.ui.viewfinder.ViewfinderScreen
 
 private sealed interface Screen {
@@ -43,6 +46,9 @@ private sealed interface Screen {
     /** A Capture from the Roll being developed; [captureId] is the time it was taken. */
     data class Review(val captureId: Long) : Screen
     data object Library : Screen
+
+    /** Grid, level line, aspect ratio, and the way to the camera recipes. */
+    data object Settings : Screen
 
     /** Loading recipes into the X-T5's custom slots over USB. */
     data object CameraRecipes : Screen
@@ -62,6 +68,7 @@ private val ScreenSaver = Saver<Screen, String>(
             Screen.Viewfinder -> "viewfinder"
             Screen.Roll -> "roll"
             Screen.Library -> "library"
+            Screen.Settings -> "settings"
             Screen.CameraRecipes -> "camera-recipes"
             is Screen.Review -> "review:${it.captureId}"
             is Screen.Viewer -> "viewer:${it.photoId}"
@@ -72,6 +79,7 @@ private val ScreenSaver = Saver<Screen, String>(
         when {
             it == "roll" -> Screen.Roll
             it == "library" -> Screen.Library
+            it == "settings" -> Screen.Settings
             it == "camera-recipes" -> Screen.CameraRecipes
             it.startsWith("review:") && id != null -> Screen.Review(id)
             it.startsWith("viewer:") && id != null -> Screen.Viewer(id)
@@ -100,6 +108,7 @@ fun FujiVibeApp() {
             connector = CameraConnector(context),
             library = RecipeLibrary(context),
             store = SlotPlanStore(context),
+            history = LoadHistoryStore(context),
             backupDir = context.getExternalFilesDir(null) ?: context.filesDir,
             scope = cameraScope,
         )
@@ -117,7 +126,7 @@ fun FujiVibeApp() {
     FujiVibeTheme {
         Box(Modifier.fillMaxSize().background(Ink)) {
             when (val current = screen) {
-                Screen.Viewfinder -> ViewfinderScreen(
+                Screen.Viewfinder -> ReadoutTheme { ViewfinderScreen(
                     captureStore = captureStore,
                     rollIds = rollIds,
                     onCaptured = { captureId, developNow ->
@@ -129,9 +138,13 @@ fun FujiVibeApp() {
                     },
                     onOpenRoll = { screen = Screen.Roll },
                     onOpenLibrary = { screen = Screen.Library },
-                    onOpenCameraRecipes = { screen = Screen.CameraRecipes },
+                    onOpenSettings = { screen = Screen.Settings },
                     lensFacing = lensFacing,
                     onLensFacingChange = { lensFacing = it },
+                ) }
+                Screen.Settings -> SettingsScreen(
+                    onBack = { screen = Screen.Viewfinder },
+                    onOpenCameraRecipes = { screen = Screen.CameraRecipes },
                 )
                 Screen.Roll -> RollScreen(
                     captureStore = captureStore,
@@ -165,7 +178,7 @@ fun FujiVibeApp() {
                 Screen.CameraRecipes -> {
                     // Leaving lets go of the USB camera, so another app can use it.
                     DisposableEffect(Unit) { onDispose { cameraRecipes.disconnect() } }
-                    CameraRecipesScreen(model = cameraRecipes, onBack = { screen = Screen.Viewfinder })
+                    CameraRecipesScreen(model = cameraRecipes, onBack = { screen = Screen.Settings })
                 }
                 is Screen.Viewer -> {
                     // After a rotation the list is gone with the rest of this screen's state; reload it.

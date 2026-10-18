@@ -6,8 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.fujivibe.camera.CameraConnection
 import com.fujivibe.camera.CameraConnector
+import com.fujivibe.camera.LoadEntry
+import com.fujivibe.camera.LoadHistoryStore
 import com.fujivibe.camera.LoadReport
-import com.fujivibe.camera.PtpException
 import com.fujivibe.camera.SlotDump
 import com.fujivibe.camera.SlotLoader
 import com.fujivibe.camera.SlotPlanStore
@@ -20,30 +21,48 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 /**
- * The state of the Camera recipes screen: the connection to the X-T5, what its seven slots hold, the
- * recipe the user has chosen for each of C2 to C7, and the result of the last load. C1 is the user's
- * default and is never part of the plan.
+ * The state of the Camera recipes screen: how far the connection to the X-T5 has got, what its seven
+ * slots hold, the recipe the user has chosen for each of C2 to C7, the result of the last load, and the
+ * loads that worked before. C1 is the user's default and is never part of the plan.
  */
 class CameraRecipesModel(
     private val connector: CameraConnector,
     private val library: RecipeLibrary,
     private val store: SlotPlanStore,
+    private val history: LoadHistoryStore,
     private val backupDir: File,
     private val scope: CoroutineScope,
 ) {
-    var message by mutableStateOf(NOT_CONNECTED)
+    var stage by mutableStateOf(ConnectionStage.NOT_TRIED)
+        private set
+
+    /** What the camera said when it did not answer, for the checklist to show under its help. */
+    var problemDetail by mutableStateOf("")
+        private set
+
+    /** The camera's make and model and firmware, once connected. */
+    var cameraLabel by mutableStateOf("")
+        private set
+
+    /** What is happening now ("Loading 3 slots…"), or empty. */
+    var activity by mutableStateOf("")
         private set
     var busy by mutableStateOf(false)
         private set
-    var connected by mutableStateOf(false)
-        private set
+    val connected: Boolean get() = stage == ConnectionStage.CONNECTED
     var slots by mutableStateOf<List<SlotDump>>(emptyList())
         private set
     var recipes by mutableStateOf(library.all())
         private set
     var report by mutableStateOf<LoadReport?>(null)
         private set
+
+    /** Whether [report] is from putting a backup back rather than from loading recipes. */
+    var reportIsRestore by mutableStateOf(false)
+        private set
     var hasBackup by mutableStateOf(SlotLoader(NoCamera, backupDir).latestBackup() != null)
+        private set
+    var previousLoads by mutableStateOf(history.entries)
         private set
 
     /** Slot number (2 to 7) to the id of the recipe chosen for it; a slot not in here is left as it is. */
@@ -59,40 +78,52 @@ class CameraRecipesModel(
         store.plan = plan.toMap()
     }
 
+    /** Uses an earlier load's recipes as the plan. Recipes that are no longer in the library are left out. */
+    fun usePreviousLoad(entry: LoadEntry) {
+        plan.clear()
+        entry.plan.filterValues { id -> recipes.any { it.id == id } }.forEach { (slot, id) -> plan[slot] = id }
+        store.plan = plan.toMap()
+    }
+
     fun connect() {
         if (busy) return
         busy = true
         report = null
-        message = "Looking for the camera…"
+        problemDetail = ""
+        stage = ConnectionStage.LOOKING
         when (val found = connector.find()) {
-            CameraConnector.Found.NoCamera -> finish(NO_CAMERA)
-            is CameraConnector.Found.NeedsPermission -> connector.requestPermission(found.device) { granted ->
-                if (granted) open(found.device) else finish("USB permission was refused. Tap Connect again and choose Allow.")
+            CameraConnector.Found.NoCamera -> finish(ConnectionStage.NO_CAMERA)
+            is CameraConnector.Found.NeedsPermission -> {
+                stage = ConnectionStage.ASKING_PERMISSION
+                connector.requestPermission(found.device) { granted ->
+                    if (granted) open(found.device) else finish(ConnectionStage.PERMISSION_REFUSED)
+                }
             }
             is CameraConnector.Found.Ready -> open(found.device)
         }
     }
 
     private fun open(device: android.hardware.usb.UsbDevice) {
+        stage = ConnectionStage.OPENING
         scope.launch(Dispatchers.IO) {
             try {
                 connection?.close()
                 val c = connector.open(device)
                 connection = c
                 slots = c.session.readSlots()
-                connected = true
-                message = "Connected to ${c.info.manufacturer} ${c.info.model}, firmware ${c.info.deviceVersion}."
+                cameraLabel = "${c.info.model}, firmware ${c.info.deviceVersion}"
+                stage = ConnectionStage.CONNECTED
             } catch (e: Exception) {
-                connected = false
                 connection = null
-                message = problem(e)
+                problemDetail = e.message ?: e::class.simpleName.orEmpty()
+                stage = ConnectionStage.NOT_ANSWERING
             }
             busy = false
         }
     }
 
-    private fun finish(text: String) {
-        message = text
+    private fun finish(newStage: ConnectionStage) {
+        stage = newStage
         busy = false
     }
 
@@ -104,17 +135,19 @@ class CameraRecipesModel(
         if (busy) return
         val toLoad = planned()
         busy = true
-        message = "Loading ${toLoad.size} slot${if (toLoad.size == 1) "" else "s"}…"
+        activity = "Loading ${toLoad.size} slot${if (toLoad.size == 1) "" else "s"}… keep the cable in and the camera awake."
         scope.launch(Dispatchers.IO) {
             try {
                 val result = SlotLoader(c.session, backupDir).load(toLoad)
                 report = result
+                reportIsRestore = false
                 hasBackup = true
                 slots = c.session.readSlots()
-                message = if (result.allLoaded) "Done. Everything read back as written." else "Finished, with problems: see below."
+                if (result.allLoaded) previousLoads = history.record(plan.toMap())
             } catch (e: Exception) {
-                message = problem(e)
+                lostConnection(e)
             }
+            activity = ""
             busy = false
         }
     }
@@ -125,18 +158,26 @@ class CameraRecipesModel(
         val loader = SlotLoader(c.session, backupDir)
         val file = loader.latestBackup() ?: return
         busy = true
-        message = "Restoring C2 to C7 from ${file.name}…"
+        activity = "Putting C2 to C7 back from ${file.name}…"
         scope.launch(Dispatchers.IO) {
             try {
                 val result = loader.restore(file)
                 report = result
+                reportIsRestore = true
                 slots = c.session.readSlots()
-                message = if (result.allLoaded) "Restored from ${file.name}." else "Restored, with problems: see below."
             } catch (e: Exception) {
-                message = problem(e)
+                lostConnection(e)
             }
+            activity = ""
             busy = false
         }
+    }
+
+    /** The camera stopped answering part-way: back to the checklist so the user can see what to check. */
+    private fun lostConnection(e: Exception) {
+        connection = null
+        problemDetail = e.message ?: e::class.simpleName.orEmpty()
+        stage = ConnectionStage.NOT_ANSWERING
     }
 
     /** Adds a recipe from pasted text; returns what the parser made of it, and chooses nothing. */
@@ -149,18 +190,9 @@ class CameraRecipesModel(
     fun disconnect() {
         val c = connection
         connection = null
-        connected = false
+        stage = ConnectionStage.NOT_TRIED
+        slots = emptyList()
         if (c != null) scope.launch(Dispatchers.IO) { runCatching { c.close() } }
-    }
-
-    private fun problem(e: Exception): String = when (e) {
-        is PtpException -> "The camera did not answer as expected (${e.message}). Check it is awake with its screen lit, in USB RAW CONV./BACKUP RESTORE mode, then tap Connect again."
-        else -> "Something went wrong: ${e.message ?: e::class.simpleName}"
-    }
-
-    companion object {
-        const val NOT_CONNECTED = "Not connected. Put the camera in USB RAW CONV./BACKUP RESTORE mode, plug it in, and tap Connect."
-        const val NO_CAMERA = "No camera found. Check that: the camera is on, awake, with its screen lit and well charged; its USB mode is RAW CONV./BACKUP RESTORE; the cable is in the phone; and in Settings, Connected devices, USB, \"USB controlled by\" is \"This device\"."
     }
 }
 
