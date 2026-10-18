@@ -10,7 +10,7 @@ _Avoid_: Photo, Shot, Image
 
 **Original**:
 The unmodified Capture, with no Film Simulation applied. Not itself a Film Simulation — it represents the absence of one.
-_Avoid_: No filter, Untouched, Raw (Raw specifically means `.dng` sensor data, which this app excludes entirely)
+_Avoid_: No filter, Untouched, Raw (Raw means `.dng` sensor data, which this app excludes; Fuji's own sensor files are **RAF**, below)
 
 **Film Simulation**:
 A named Fuji color look (e.g. Provia, Velvia, Classic Chrome) produced by applying a LUT to the Capture. FujiVibe may also ship its own derived variant of a stock look (e.g. Classic Neg. (Pixel), see ADR 0005) when the stock look needs compensating for how this app's Capture differs from a Fuji camera's JPEG — still produced by applying a single LUT, just not itself a stock Fuji-named look.
@@ -39,6 +39,14 @@ _Avoid_: Save, Confirm
 **Library**:
 FujiVibe's in-app browser of the photos it has Exported (the files in `Pictures/FujiVibe/`), where one can be opened, zoomed and deleted. Reached from the Viewfinder's top bar. Not the system gallery, which is Android's own photo app and where Export writes to.
 _Avoid_: Gallery (collides with the system gallery)
+
+**RAF**:
+A Fuji RAW file (`.RAF`) shot on the user's X-T5. The app never decodes it; the camera, connected over USB, develops it into a JPEG (see ADR 0013). A RAF is not a Capture: it comes from the camera, not from the Viewfinder.
+_Avoid_: Raw, Negative
+
+**Recipe**:
+A named set of camera settings (Film Simulation plus grain, Color Chrome, white balance shift, tone and so on) that the camera applies when it develops a RAF. Held by the app, written to the camera for each render. Unlike a Film Simulation, a Recipe is rendered by the camera, not by applying a LUT.
+_Avoid_: Preset, Profile, Look
 
 **Discard**:
 Abandoning a Capture without saving anything, deleting it from the Roll. Ends the Capture's lifecycle.
