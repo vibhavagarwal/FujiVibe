@@ -36,6 +36,9 @@ recipe), `RawConvProfile.kt` (the 0xD185 recipe block), `UsbPtpLink.kt` (Android
 - The first read of a container assumes the camera sends the header in the first packet.
 - FilmKit's film simulation codes come from an X100VI; an X-T5 may differ.
 
+
+> The RAF Spike screen this ticket describes was removed on 2026-10-18 once the Camera recipes screen replaced it; it is in git history (last present at commit c78e633 on branch raw-develop).
+
 ## Comments
 
 ## Answer

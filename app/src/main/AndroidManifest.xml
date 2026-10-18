@@ -24,15 +24,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- Throwaway test bench for developing a RAF over USB (.scratch/raw-develop); own icon so it stays apart from the app. -->
-        <activity
-            android:name=".camera.UsbSpikeActivity"
-            android:label="RAF Spike"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 </manifest>

@@ -40,4 +40,7 @@ each slot property (all 16-bit little-endian; negatives are two's complement):
 
 `RecipeToSlotTest` rebuilds the three recipe slots from recipes and checks every property.
 
+
+> The RAF Spike screen this ticket describes was removed on 2026-10-18 once the Camera recipes screen replaced it; it is in git history (last present at commit c78e633 on branch raw-develop).
+
 ## Comments
