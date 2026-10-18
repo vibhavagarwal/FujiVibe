@@ -42,7 +42,10 @@ enum class GrainSize { SMALL, LARGE }
 
 data class Grain(val strength: GrainStrength, val size: GrainSize? = null)
 
-enum class WhiteBalanceMode { AUTO, DAYLIGHT, SHADE, INCANDESCENT, KELVIN }
+enum class WhiteBalanceMode {
+    AUTO, AUTO_WHITE_PRIORITY, AUTO_AMBIENCE_PRIORITY, DAYLIGHT, SHADE, INCANDESCENT,
+    FLUORESCENT_1, FLUORESCENT_2, FLUORESCENT_3, KELVIN,
+}
 
 /** A null [mode] leaves the white balance the RAF was shot with, with any shifts applied to it. */
 data class WhiteBalance(

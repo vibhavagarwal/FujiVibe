@@ -32,11 +32,8 @@ fun Recipe.settingLines(): List<Pair<String, String>> {
     s.whiteBalance?.let { wb ->
         val mode = when (wb.mode) {
             null -> null
-            WhiteBalanceMode.AUTO -> "Auto"
-            WhiteBalanceMode.DAYLIGHT -> "Daylight"
-            WhiteBalanceMode.SHADE -> "Shade"
-            WhiteBalanceMode.INCANDESCENT -> "Incandescent"
             WhiteBalanceMode.KELVIN -> "${wb.kelvin ?: "?"} K"
+            else -> wb.mode.label()
         }
         val shifts = if (wb.shiftR != null || wb.shiftB != null) "R ${signed((wb.shiftR ?: 0).toDouble())}, B ${signed((wb.shiftB ?: 0).toDouble())}" else null
         lines += "White balance" to listOfNotNull(mode, shifts).joinToString(", ").ifEmpty { "Camera's own" }
@@ -47,7 +44,8 @@ fun Recipe.settingLines(): List<Pair<String, String>> {
     s.color?.let { lines += "Color" to signed(it) }
     s.sharpness?.let { lines += "Sharpness" to signed(it) }
     s.highIsoNr?.let { lines += "High ISO NR" to signed(it.toDouble()) }
-    s.clarity?.let { lines += "Clarity" to signed(it) }
+    if (s.clarity != null && s.clarity != 0.0) lines += "Clarity" to "0 written (recipe: ${signed(s.clarity)})"
+    else if (s.clarity != null) lines += "Clarity" to "0"
     return lines
 }
 
@@ -92,3 +90,29 @@ fun List<Recipe>.tagsBy(group: (Recipe) -> List<String>): List<String> =
 
 /** A tag as a person reads it: "autumn-leaves" is "Autumn leaves". */
 fun tagLabel(tag: String): String = tag.replace('-', ' ').replaceFirstChar { it.uppercase() }
+
+/**
+ * The diffusion filter that stands in for a negative Clarity, since Clarity is never written to a slot (it slows
+ * saving). Fuji X Weekly pairs CineBloom 5% with Clarity -1 to -2, 10% with -3 to -4 and 20% with -5; the Black
+ * Pro-Mist strengths are the nearest equivalents. Null when the recipe has no negative Clarity.
+ */
+fun Recipe.diffusionFilter(): String? {
+    val c = settings.clarity ?: return null
+    return when {
+        c >= 0 -> null
+        c >= -2 -> "CineBloom 5% or Black Pro-Mist 1/8"
+        c >= -4 -> "CineBloom 10% or Black Pro-Mist 1/4"
+        else -> "CineBloom 20% or Black Pro-Mist 1/2"
+    }
+}
+
+/** A sentence about the recipe's Clarity, which is not written; null when it has none to speak of. */
+fun Recipe.clarityNote(): String? {
+    val c = settings.clarity ?: return null
+    val filter = diffusionFilter()
+    return when {
+        c == 0.0 -> null
+        filter != null -> "The recipe has Clarity ${signed(c)}, which is not written because it slows saving. A filter gives a similar soft glow: $filter."
+        else -> "The recipe has Clarity ${signed(c)}, which is not written because it slows saving. Expect a little less bite; add it in X RAW Studio if you want it."
+    }
+}

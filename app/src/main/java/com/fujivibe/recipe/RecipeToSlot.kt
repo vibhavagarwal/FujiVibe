@@ -73,6 +73,9 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     // (seen on an X-T5), so mode, then temperature, then the shifts.
     v[0xD199] = u16(wb?.mode?.nativeValue() ?: 2)
     if (wb != null && wb.mode == null) notes += "White balance mode not given; Auto used"
+    if (wb?.mode != null && !wb.mode.isConfirmed) {
+        notes += "White balance ${wb.mode.label()} is written with a code not yet confirmed on an X-T5; check the slot shows ${wb.mode.label()}"
+    }
     // The temperature is only accepted in the kelvin mode.
     if (wb?.mode == WhiteBalanceMode.KELVIN) v[0xD19C] = u16(wb.kelvin ?: 10000) else keep(0xD19C, 10000)
     v[0xD19A] = u16((wb?.shiftR ?: 0).signed16())
@@ -90,7 +93,9 @@ fun Recipe.toSlotValues(current: SlotDump): SlotWrite {
     val nr = s.highIsoNr ?: 0
     v[0xD1A1] = u16(NoiseReductionCodes.encode(nr) ?: 0x2000)
     if (NoiseReductionCodes.encode(nr) == null) notes += "High ISO NR $nr is not written (left at 0)"
-    v[0xD1A2] = u16((s.clarity?.times10() ?: 0).signed16())
+    // Clarity is never written: it makes the camera pause to save each shot. The recipe's Clarity is kept
+    // in the recipe, and [diffusionFilter] says what to put on the lens instead.
+    v[0xD1A2] = u16(0)
     keep(0xD1A3, 1)
     keep(0xD1A4, 1)
     keep(0xD1A5, 7)

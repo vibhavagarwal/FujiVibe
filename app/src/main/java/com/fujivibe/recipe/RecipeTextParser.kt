@@ -202,7 +202,12 @@ object RecipeTextParser {
         val kelvin = Regex("(\\d{4,5})\\s*k").find(t)?.groupValues?.get(1)?.toInt()
         val mode = when {
             kelvin != null -> WhiteBalanceMode.KELVIN
+            t.contains("auto") && t.contains("white priority") -> WhiteBalanceMode.AUTO_WHITE_PRIORITY
+            t.contains("auto") && t.contains("ambience priority") -> WhiteBalanceMode.AUTO_AMBIENCE_PRIORITY
             t.contains("auto") -> WhiteBalanceMode.AUTO
+            t.contains("fluorescent 1") -> WhiteBalanceMode.FLUORESCENT_1
+            t.contains("fluorescent 2") -> WhiteBalanceMode.FLUORESCENT_2
+            t.contains("fluorescent 3") -> WhiteBalanceMode.FLUORESCENT_3
             t.contains("daylight") -> WhiteBalanceMode.DAYLIGHT
             t.contains("shade") -> WhiteBalanceMode.SHADE
             t.contains("incandescent") || t.contains("tungsten") -> WhiteBalanceMode.INCANDESCENT

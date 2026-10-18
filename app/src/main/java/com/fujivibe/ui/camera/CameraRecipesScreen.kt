@@ -58,6 +58,7 @@ import com.fujivibe.camera.SlotStatus
 import com.fujivibe.camera.replacedName
 import com.fujivibe.recipe.Recipe
 import com.fujivibe.recipe.characterChips
+import com.fujivibe.recipe.diffusionFilter
 import com.fujivibe.recipe.slotName
 import com.fujivibe.recipe.toSlotValues
 import com.fujivibe.ui.HeaderIcon
@@ -272,6 +273,7 @@ private fun SlotRow(number: Int, onCamera: SlotDump?, chosen: Recipe?, locked: B
                 chosen.toSlotValues(onCamera ?: SlotDump(number, emptyMap())).notes.forEach {
                     Text(SlotNotes.plain(it), color = PaperMuted, fontSize = 12.sp)
                 }
+                chosen.diffusionFilter()?.let { Text("On the lens: $it", color = PaperMuted, fontSize = 12.sp) }
             }
         }
         if (!locked) Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = "Change", tint = PaperMuted, modifier = Modifier.size(24.dp))

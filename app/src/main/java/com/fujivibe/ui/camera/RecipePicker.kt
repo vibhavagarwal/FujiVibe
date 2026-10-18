@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.fujivibe.recipe.Recipe
 import com.fujivibe.recipe.RecipeFilter
 import com.fujivibe.recipe.characterChips
+import com.fujivibe.recipe.clarityNote
 import com.fujivibe.recipe.settingLines
 import com.fujivibe.recipe.tagLabel
 import com.fujivibe.recipe.tagsBy
@@ -216,6 +217,7 @@ private fun RecipeDetailSheet(r: Recipe, slot: Int, selected: Boolean, onUse: ()
                     }
                 }
             }
+            r.clarityNote()?.let { Section("Clarity and a filter") { Text(it, fontSize = 14.sp) } }
             val advice = listOfNotNull(
                 r.shootingNotes.iso.takeIf { it.isNotBlank() }?.let { "ISO: $it" },
                 r.shootingNotes.exposureCompensation.takeIf { it.isNotBlank() }?.let { "Exposure compensation: $it" },

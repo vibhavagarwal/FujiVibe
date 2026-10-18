@@ -1002,6 +1002,1091 @@
       "recommendationText": "A warm, amber-tinted look with rich shadows, like a 1970s colour print. Suits golden light, everyday street and travel, and portraits where a nostalgic, gently warm feel is wanted.",
       "confidence": "high",
       "notes": "Stock simulation at default settings."
+    },
+    {
+      "id": "cinestill-800t",
+      "name": "CineStill 800T",
+      "kind": "community",
+      "baseSimulation": "eterna",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "large"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "weak",
+        "whiteBalance": {
+          "mode": "fluorescent-3",
+          "kelvin": null,
+          "shiftR": -6,
+          "shiftB": -4
+        },
+        "highlight": 0,
+        "shadow": 2,
+        "color": 4,
+        "monochromaticColor": null,
+        "sharpness": -3,
+        "highIsoNr": -4,
+        "clarity": -5
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "-1/3 to +2/3, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2024/04/16/cinestill-800t-fujifilm-x-trans-v-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "night",
+          "street",
+          "architecture",
+          "travel"
+        ],
+        "light": [
+          "low-light",
+          "artificial-light"
+        ],
+        "mood": [
+          "cinematic",
+          "cool",
+          "nostalgic"
+        ]
+      },
+      "avoid": [
+        "daylight scenes where a strong blue cast is unwelcome"
+      ],
+      "recommendationText": "Modelled on tungsten-balanced cinema film, so it turns artificial light into a cool, cinematic palette with heavy grain and soft highlights. The author uses it mostly after dark, where streetlights and signs stay moody rather than orange. In daylight it throws a strong blue cast.",
+      "confidence": "high",
+      "notes": "Shadow was corrected from +0 to +2 on 17 Apr 2024. The author took the night samples with a 5% CineBloom filter. The Fluorescent 3 white balance code is not yet confirmed on the X-T5. Clarity -5 is not written; a 20% CineBloom is the stand-in."
+    },
+    {
+      "id": "expired-ecn-2-100t",
+      "name": "Expired ECN-2 100T",
+      "kind": "community",
+      "baseSimulation": "eterna-bleach",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "large"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "weak",
+        "whiteBalance": {
+          "mode": "kelvin",
+          "kelvin": 6000,
+          "shiftR": -9,
+          "shiftB": -6
+        },
+        "highlight": 0.5,
+        "shadow": -1,
+        "color": 1,
+        "monochromaticColor": null,
+        "sharpness": -3,
+        "highIsoNr": -4,
+        "clarity": -4
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "0 to +2/3, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2024/02/01/expired-ecn-2-100t-fujifilm-x-trans-iv-x-trans-v-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "night",
+          "street",
+          "documentary"
+        ],
+        "light": [
+          "low-light",
+          "artificial-light"
+        ],
+        "mood": [
+          "gritty",
+          "vintage",
+          "cinematic"
+        ]
+      },
+      "avoid": [
+        "daylight (strong teal cast)",
+        "an everyday go-to look"
+      ],
+      "recommendationText": "Imitates expired motion-picture film developed as ordinary colour negative: a lomo-like look with green or yellow casts depending on the light. It shines at night under artificial light. In daylight the cast turns strongly teal, so it is a special-occasion recipe, not a daily one.",
+      "confidence": "high",
+      "notes": "X-Trans V uses Color Chrome FX Blue Weak; X-Trans IV uses Strong. Clarity -4 is not written; a 10% CineBloom is the stand-in."
+    },
+    {
+      "id": "fluorescent-night",
+      "name": "Fluorescent Night",
+      "kind": "community",
+      "baseSimulation": "nostalgic-neg",
+      "settings": {
+        "dynamicRange": "dr200",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "small"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "weak",
+        "whiteBalance": {
+          "mode": "fluorescent-2",
+          "kelvin": null,
+          "shiftR": -8,
+          "shiftB": -1
+        },
+        "highlight": -1,
+        "shadow": -1.5,
+        "color": 4,
+        "monochromaticColor": null,
+        "sharpness": -2,
+        "highIsoNr": -4,
+        "clarity": -3
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "-2/3 to +2/3; usually -2/3 or -1/3 at night, +1/3 or +2/3 in daylight"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2023/12/04/fluorescent-night-fujifilm-x-t5-x-trans-v-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "night",
+          "street",
+          "architecture"
+        ],
+        "light": [
+          "low-light",
+          "artificial-light"
+        ],
+        "mood": [
+          "cool",
+          "nostalgic",
+          "vintage"
+        ]
+      },
+      "avoid": [
+        "mixed lighting, where the colour can be unpredictable"
+      ],
+      "recommendationText": "A night recipe that behaves like a tungsten-balanced film without copying any one stock. Under fluorescent and other artificial lights the result runs warm or cool with the bulb. In daylight it is still usable, with a cool retro cast and strong blues.",
+      "confidence": "high",
+      "notes": "The Fluorescent 2 white balance code is not yet confirmed on the X-T5. Clarity -3 is not written; a 10% CineBloom is the stand-in."
+    },
+    {
+      "id": "kodak-gold-200",
+      "name": "Kodak Gold 200",
+      "kind": "community",
+      "baseSimulation": "classic-chrome",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "small"
+        },
+        "colorChrome": "weak",
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "daylight",
+          "kelvin": null,
+          "shiftR": 4,
+          "shiftB": -5
+        },
+        "highlight": -1.5,
+        "shadow": 0.5,
+        "color": 3,
+        "monochromaticColor": null,
+        "sharpness": -2,
+        "highIsoNr": -4,
+        "clarity": -2
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "+2/3 to +1, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2023/10/24/kodak-gold-200-fujifilm-x-t5-x-trans-v-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "travel",
+          "street",
+          "landscape",
+          "coast"
+        ],
+        "light": [
+          "sunny-daylight",
+          "golden-hour"
+        ],
+        "mood": [
+          "warm",
+          "nostalgic",
+          "vintage",
+          "vivid"
+        ]
+      },
+      "avoid": [
+        "shade and flat light, where the fixed Daylight white balance looks off"
+      ],
+      "recommendationText": "A warm, sunny consumer-film look with golden tones and strong colour, best in bright daylight. Good for beaches, travel and late-afternoon street scenes. The author stresses that the real film varies with processing and scanning, so this is one approximation.",
+      "confidence": "high",
+      "notes": "Clarity -2 is not written; a 5% CineBloom is the stand-in. On X-Trans IV bodies Color Chrome FX Blue is Weak."
+    },
+    {
+      "id": "kodak-portra-400-v2",
+      "name": "Kodak Portra 400 v2",
+      "kind": "community",
+      "baseSimulation": "classic-chrome",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "small"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "kelvin",
+          "kelvin": 5200,
+          "shiftR": 1,
+          "shiftB": -6
+        },
+        "highlight": 0,
+        "shadow": -2,
+        "color": 2,
+        "monochromaticColor": null,
+        "sharpness": -2,
+        "highIsoNr": -4,
+        "clarity": -2
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "+1/3 to +1, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2022/12/16/kodak-portra-400-v2-fujifilm-x-t5-x-trans-v-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "portrait",
+          "skin-tones",
+          "travel",
+          "street"
+        ],
+        "light": [
+          "sunny-daylight",
+          "golden-hour",
+          "overcast"
+        ],
+        "mood": [
+          "warm",
+          "soft",
+          "natural",
+          "nostalgic"
+        ]
+      },
+      "avoid": [
+        "indoor artificial light, where it turns very warm"
+      ],
+      "recommendationText": "A soft, warm colour-negative portrait look with lifted shadows, aimed at daylight and golden hour. The author calls it one of his favourites and uses it across many subjects, though it is weaker under indoor artificial light.",
+      "confidence": "high",
+      "notes": "Colour temperature is set in Kelvin (5200K). If shadows look green, the author suggests R+2, or B-5 instead of -6. Clarity -2 is not written; a 5% CineBloom is the stand-in."
+    },
+    {
+      "id": "fujicolor-pro-400h",
+      "name": "Fujicolor Pro 400H",
+      "kind": "community",
+      "baseSimulation": "classic-neg",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "small"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "kelvin",
+          "kelvin": 4900,
+          "shiftR": 0,
+          "shiftB": -4
+        },
+        "highlight": -2,
+        "shadow": 3.5,
+        "color": 4,
+        "monochromaticColor": null,
+        "sharpness": -2,
+        "highIsoNr": -4,
+        "clarity": -4
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "+1 to +1 2/3 typically; +1/3 to +2 2/3 depending on light"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2021/05/16/fujifilm-x100v-x-trans-iv-film-simulation-recipe-fujicolor-pro-400h/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "portrait",
+          "flowers",
+          "travel",
+          "street"
+        ],
+        "light": [
+          "overcast",
+          "sunny-daylight",
+          "shade"
+        ],
+        "mood": [
+          "soft",
+          "clean",
+          "nostalgic"
+        ]
+      },
+      "avoid": [
+        "heavy overexposure on paid or important work, as the author cautions"
+      ],
+      "recommendationText": "A pastel, airy, deliberately overexposed look with cool-leaning highlights, modelled on Pro 400H. Works best a stop or more over, which pushes the pastel feel. A diffusion filter pairs well with it.",
+      "confidence": "medium",
+      "notes": "The published page is for the X100V (X-Trans IV). The values here follow the author's May 2024 reply for X-Trans V: Color Chrome FX Blue Off and Shadow +3.5 (the page says +4). The author advises against Reala Ace as the base. Clarity -4 is not written; a 10% CineBloom or Black Pro-Mist 1/4 is the stand-in."
+    },
+    {
+      "id": "superia-xtra-400",
+      "name": "Superia Xtra 400",
+      "kind": "community",
+      "baseSimulation": "classic-neg",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "small"
+        },
+        "colorChrome": "off",
+        "colorChromeFxBlue": "weak",
+        "whiteBalance": {
+          "mode": "auto",
+          "kelvin": null,
+          "shiftR": 3,
+          "shiftB": -5
+        },
+        "highlight": 0,
+        "shadow": -1,
+        "color": 4,
+        "monochromaticColor": null,
+        "sharpness": -1,
+        "highIsoNr": -4,
+        "clarity": -2
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "0 to +1, typically"
+      },
+      "source": {
+        "author": "Thomas Schwab (original), adapted by Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2022/12/09/superia-xtra-400-fujifilm-x-t5-x-trans-v-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "street",
+          "travel",
+          "landscape",
+          "nature"
+        ],
+        "light": [
+          "sunny-daylight",
+          "overcast"
+        ],
+        "mood": [
+          "vivid",
+          "nostalgic",
+          "warm"
+        ]
+      },
+      "avoid": [
+        "bright sun and indoor light, where some readers found it dark"
+      ],
+      "recommendationText": "A grainy, saturated consumer-negative look matched to real Superia Xtra 400 scans. Reads best outdoors in everyday daylight. Some users found it too warm or dark compared with their memory of the film, and the author notes that film results depend heavily on exposure and scanning.",
+      "confidence": "medium",
+      "notes": "DR400 is ISO-dependent and may be greyed out at low ISO. Needs Classic Negative; PRO Neg. Std or Astia come close but differ. Clarity -2 is not written; a 5% CineBloom is the stand-in."
+    },
+    {
+      "id": "reggies-superia",
+      "name": "Reggie's Superia",
+      "kind": "community",
+      "baseSimulation": "classic-neg",
+      "settings": {
+        "dynamicRange": "auto",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "large"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "strong",
+        "whiteBalance": {
+          "mode": "auto",
+          "kelvin": null,
+          "shiftR": 1,
+          "shiftB": -3
+        },
+        "highlight": -2,
+        "shadow": -1,
+        "color": 1,
+        "monochromaticColor": null,
+        "sharpness": -2,
+        "highIsoNr": -4,
+        "clarity": 0
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "Judge each shot; the publisher started at +1/3 to +2/3"
+      },
+      "source": {
+        "author": "Reggie Ballesteros",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2026/03/12/reggies-superia-a-fujifilm-recipe-for-x-trans-iv-v-cameras/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "portrait",
+          "skin-tones",
+          "street",
+          "documentary"
+        ],
+        "light": [
+          "sunny-daylight",
+          "hard-light",
+          "golden-hour"
+        ],
+        "mood": [
+          "gritty",
+          "high-contrast",
+          "nostalgic",
+          "cinematic"
+        ]
+      },
+      "avoid": [
+        "strict colour accuracy",
+        "soft, even light where the contrast has nothing to work with"
+      ],
+      "recommendationText": "A moodier, grainier and more contrasty counterpart to Reggie's Portra, built to keep depth and richness in darker skin. It suits directional light where deep shadows or slightly blown highlights are part of the look.",
+      "confidence": "high",
+      "notes": "Designed for X-Trans V; usable on most X-Trans IV bodies with slightly less deep blues. Reggie asked that a suggested exposure compensation be removed from the page."
+    },
+    {
+      "id": "fujicolor-reala-100",
+      "name": "Fujicolor Reala 100",
+      "kind": "community",
+      "baseSimulation": "classic-neg",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "weak",
+          "size": "small"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "weak",
+        "whiteBalance": {
+          "mode": "daylight",
+          "kelvin": null,
+          "shiftR": 0,
+          "shiftB": 0
+        },
+        "highlight": -1,
+        "shadow": -1,
+        "color": 0,
+        "monochromaticColor": null,
+        "sharpness": -2,
+        "highIsoNr": -4,
+        "clarity": -3
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "0 to +1, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2023/09/06/fujicolor-reala-100-fujifilm-x-t5-x-trans-v-film-simulation-recipe",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "portrait",
+          "skin-tones",
+          "travel",
+          "landscape"
+        ],
+        "light": [
+          "sunny-daylight",
+          "overcast",
+          "shade"
+        ],
+        "mood": [
+          "natural",
+          "soft",
+          "muted",
+          "clean"
+        ]
+      },
+      "avoid": [
+        "scenes that need strong colour punch"
+      ],
+      "recommendationText": "A neutral, natural colour-negative look with soft tonality and muted colour, suited to portraits and calm everyday work. The author describes the real film as a portrait and wedding stock; this was written as a guess before Reala Ace existed.",
+      "confidence": "high",
+      "notes": "The author notes the newer Reala Ace recipe is slightly more vibrant and versatile. Clarity -3 is not written; a 10% CineBloom is the stand-in."
+    },
+    {
+      "id": "fujifilm-negative",
+      "name": "Fujifilm Negative",
+      "kind": "community",
+      "baseSimulation": "reala-ace",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "weak",
+          "size": "small"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "kelvin",
+          "kelvin": 5000,
+          "shiftR": 0,
+          "shiftB": -2
+        },
+        "highlight": -1,
+        "shadow": -0.5,
+        "color": 2,
+        "monochromaticColor": null,
+        "sharpness": -1,
+        "highIsoNr": -4,
+        "clarity": -2
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "+1/3 to +1, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2024/10/31/fujifilm-negative-fujifilm-x-t5-x-trans-v-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "travel",
+          "street",
+          "landscape",
+          "portrait"
+        ],
+        "light": [
+          "sunny-daylight",
+          "overcast"
+        ],
+        "mood": [
+          "natural",
+          "clean",
+          "vivid"
+        ]
+      },
+      "avoid": [
+        "artificial light, where it can look too yellow",
+        "shade, where it can look too cool"
+      ],
+      "recommendationText": "An everyday colour recipe on the Reala Ace simulation, designed for sunny daylight and also good on overcast days and in indoor natural light. It is clean and slightly vivid without a strong film cast.",
+      "confidence": "high",
+      "notes": "Uses the Reala Ace film simulation, which the X-T5 has. The author suggests a diffusion filter in place of negative Clarity to save processing time. Clarity -2 is not written; a 5% CineBloom is the stand-in."
+    },
+    {
+      "id": "provia-positive",
+      "name": "Provia Positive",
+      "kind": "community",
+      "baseSimulation": "provia",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "small"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "strong",
+        "whiteBalance": {
+          "mode": "auto-white-priority",
+          "kelvin": null,
+          "shiftR": 2,
+          "shiftB": -3
+        },
+        "highlight": -1,
+        "shadow": 1,
+        "color": 4,
+        "monochromaticColor": null,
+        "sharpness": -1,
+        "highIsoNr": -4,
+        "clarity": 2
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "+1/3 to +1, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch (from Dan Allen's Spring Provia)",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2026/05/27/fujifilm-recipe-provia-positive/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "landscape",
+          "street",
+          "nature",
+          "architecture"
+        ],
+        "light": [
+          "sunny-daylight",
+          "overcast"
+        ],
+        "mood": [
+          "vivid",
+          "clean",
+          "natural"
+        ]
+      },
+      "avoid": [
+        "portraits, which the author finds hit or miss"
+      ],
+      "recommendationText": "A versatile Provia-based colour recipe the author calls his favourite; punchy yet clean, good for landscapes, still life and street. It needs the Auto White Priority white balance for the intended result.",
+      "confidence": "high",
+      "notes": "The Auto White Priority code is not yet confirmed on the X-T5. Clarity +2 is not written (it slows saving), so expect a little less bite."
+    },
+    {
+      "id": "kodak-ektachrome-e100vs-v2",
+      "name": "Kodak Ektachrome E100VS v2",
+      "kind": "community",
+      "baseSimulation": "velvia",
+      "settings": {
+        "dynamicRange": "dr200",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "weak",
+          "size": "small"
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "strong",
+        "whiteBalance": {
+          "mode": "kelvin",
+          "kelvin": 5150,
+          "shiftR": 3,
+          "shiftB": -3
+        },
+        "highlight": 1.5,
+        "shadow": 0.5,
+        "color": 1,
+        "monochromaticColor": null,
+        "sharpness": -1,
+        "highIsoNr": -4,
+        "clarity": 3
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "-1/3 to +2/3, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2023/04/29/can-ai-make-a-fujifilm-recipe-kodak-ektachrome-e100vs-two-fujifilm-x-t5-x-trans-v-x-trans-iv-film-simulation-recipes/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "landscape",
+          "nature",
+          "travel",
+          "flowers",
+          "autumn-leaves"
+        ],
+        "light": [
+          "sunny-daylight",
+          "golden-hour"
+        ],
+        "mood": [
+          "vivid",
+          "high-contrast",
+          "natural"
+        ]
+      },
+      "avoid": [
+        "changing light, since the white balance is fixed at 5150K",
+        "bright scenes where highlights clip"
+      ],
+      "recommendationText": "A vivid slide-film look that the author says can be nearly identical to real slides in the right conditions. Fixed daylight white balance and DR200 make it less forgiving: watch the light and the highlights.",
+      "confidence": "high",
+      "notes": "Clarity +3 is not written (it slows saving), so expect a little less bite."
+    },
+    {
+      "id": "ilford-hp5-plus-400",
+      "name": "Ilford HP5 Plus 400",
+      "kind": "community",
+      "baseSimulation": "monochrome",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "large"
+        },
+        "colorChrome": "off",
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "daylight",
+          "kelvin": null,
+          "shiftR": 1,
+          "shiftB": -8
+        },
+        "highlight": -1,
+        "shadow": 1,
+        "color": null,
+        "monochromaticColor": null,
+        "sharpness": -2,
+        "highIsoNr": -4,
+        "clarity": 0
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "-2/3 to +2/3, typically"
+      },
+      "source": {
+        "author": "Anders Lindborg (shared by Ritchie Roesch)",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2022/03/23/fujifilm-x-trans-iv-film-simulation-recipe-ilford-hp5-plus-400/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "street",
+          "documentary",
+          "portrait",
+          "landscape"
+        ],
+        "light": [
+          "overcast",
+          "sunny-daylight",
+          "shade"
+        ],
+        "mood": [
+          "soft",
+          "vintage",
+          "natural"
+        ]
+      },
+      "avoid": [
+        "scenes that need pure black shadows like Tri-X"
+      ],
+      "recommendationText": "An all-day black and white built around middle grey, with soft highlights and shadows that fall into deep darks without going fully black. Good in most weather and especially in winter scenes.",
+      "confidence": "high",
+      "notes": "Published for X-Trans IV; the author confirms it works on X-Trans V. No monochrome tint is specified."
+    },
+    {
+      "id": "ilford-fp4-plus-125",
+      "name": "Ilford FP4 Plus 125",
+      "kind": "community",
+      "baseSimulation": "monochrome",
+      "settings": {
+        "dynamicRange": "dr200",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "weak",
+          "size": "large"
+        },
+        "colorChrome": "off",
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "daylight",
+          "kelvin": null,
+          "shiftR": 6,
+          "shiftB": -8
+        },
+        "highlight": -0.5,
+        "shadow": -1.5,
+        "color": null,
+        "monochromaticColor": {
+          "wc": 0,
+          "mg": 0
+        },
+        "sharpness": 0,
+        "highIsoNr": -4,
+        "clarity": 2
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "-1 to -1/3, typically"
+      },
+      "source": {
+        "author": "Anders Lindborg (modified by Ritchie Roesch)",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2022/12/28/ilford-fp4-plus-125-fujifilm-x-t5-x-trans-v-x-trans-iv-film-simulation-recipe/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "landscape",
+          "architecture",
+          "street",
+          "portrait"
+        ],
+        "light": [
+          "sunny-daylight",
+          "hard-light",
+          "overcast"
+        ],
+        "mood": [
+          "clean",
+          "natural",
+          "soft"
+        ]
+      },
+      "avoid": [
+        "flat, low-contrast scenes"
+      ],
+      "recommendationText": "A fine-grained black and white that holds shadow detail and suits mid-to-high contrast scenes. The author describes it as tunable from soft and dreamy to sharp and graphic; protect the highlights so they do not clip.",
+      "confidence": "high",
+      "notes": "Anders's own version uses DR100, Highlight 0, Shadow -1 and Clarity -2 to +4. Clarity +2 is not written (it slows saving)."
+    },
+    {
+      "id": "everyday-astia",
+      "name": "Everyday Astia",
+      "kind": "community",
+      "baseSimulation": "astia",
+      "settings": {
+        "dynamicRange": "dr400",
+        "dRangePriority": null,
+        "grain": {
+          "strength": "weak",
+          "size": "small"
+        },
+        "colorChrome": null,
+        "colorChromeFxBlue": "off",
+        "whiteBalance": {
+          "mode": "auto",
+          "kelvin": null,
+          "shiftR": -1,
+          "shiftB": -2
+        },
+        "highlight": 1,
+        "shadow": 1,
+        "color": -1,
+        "monochromaticColor": null,
+        "sharpness": -1,
+        "highIsoNr": -4,
+        "clarity": 0
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "0 to +2/3, typically"
+      },
+      "source": {
+        "author": "Ritchie Roesch",
+        "publisher": "Fuji X Weekly",
+        "url": "https://fujixweekly.com/2022/09/21/fujifilm-x-h1-x-trans-iii-x-t3-x-t30-film-simulation-recipe-everyday-astia/",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "portrait",
+          "skin-tones",
+          "street",
+          "landscape",
+          "travel"
+        ],
+        "light": [
+          "sunny-daylight",
+          "shade",
+          "overcast",
+          "artificial-light"
+        ],
+        "mood": [
+          "soft",
+          "natural",
+          "clean"
+        ]
+      },
+      "avoid": [
+        "scenes where you want strong colour punch"
+      ],
+      "recommendationText": "A versatile everyday colour recipe on Astia that works in sunshine and shade, and for portraits, street, landscape and artificial light.",
+      "confidence": "medium",
+      "notes": "The page was written for the X-H1 (X-Trans III). For X-Trans IV and V it says Color Chrome FX Blue Off, Clarity 0 and grain size Small; grain strength and Color Chrome Effect are not stated for them, and comments disagree on Weak versus Small. Weak/Small grain and Color Chrome Effect Off are assumed."
+    },
+    {
+      "id": "leica-x",
+      "name": "Leica X",
+      "kind": "community",
+      "baseSimulation": "classic-chrome",
+      "settings": {
+        "dynamicRange": "auto",
+        "dRangePriority": "off",
+        "grain": {
+          "strength": "off",
+          "size": null
+        },
+        "colorChrome": "strong",
+        "colorChromeFxBlue": "strong",
+        "whiteBalance": {
+          "mode": "auto",
+          "kelvin": null,
+          "shiftR": 1,
+          "shiftB": -2
+        },
+        "highlight": -1,
+        "shadow": 0,
+        "color": 4,
+        "monochromaticColor": null,
+        "sharpness": 0,
+        "highIsoNr": -4,
+        "clarity": 0
+      },
+      "shootingNotes": {
+        "iso": "Auto, up to 6400",
+        "exposureCompensation": "Not stated"
+      },
+      "source": {
+        "author": "carlcruzsnaps",
+        "publisher": "carlcruzsnaps.com",
+        "url": "https://carlcruzsnaps.com/leica-x.html",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "travel",
+          "street",
+          "architecture",
+          "landscape"
+        ],
+        "light": [
+          "sunny-daylight",
+          "overcast",
+          "golden-hour"
+        ],
+        "mood": [
+          "natural",
+          "vivid",
+          "clean"
+        ]
+      },
+      "avoid": [],
+      "recommendationText": "A clean, grain-free colour recipe aiming at the Leica colour: Velvia's punch softened into Classic Chrome's subtlety, with Color raised to balance it. Strong Color Chrome Effect and FX Blue keep reds and blues rich.",
+      "confidence": "medium",
+      "notes": "Designed on an X-Trans V sensor for the X100VI. The page gives no scene guidance, ISO or exposure advice, so the tags are inferred from the look."
+    },
+    {
+      "id": "pure-grit",
+      "name": "Pure Grit",
+      "kind": "community",
+      "baseSimulation": "acros-ye",
+      "settings": {
+        "dynamicRange": null,
+        "dRangePriority": null,
+        "grain": {
+          "strength": "strong",
+          "size": "large"
+        },
+        "colorChrome": null,
+        "colorChromeFxBlue": null,
+        "whiteBalance": null,
+        "highlight": 4,
+        "shadow": 4,
+        "color": null,
+        "monochromaticColor": null,
+        "sharpness": 0,
+        "highIsoNr": -4,
+        "clarity": 3
+      },
+      "shootingNotes": {
+        "iso": "Not stated",
+        "exposureCompensation": "Not stated"
+      },
+      "source": {
+        "author": "Kevin Mullins",
+        "publisher": "Kevin Mullins Photography",
+        "url": "https://www.kevinmullinsphotography.co.uk/blog/fujifilm-recipe-gritty-black-and-white",
+        "retrieved": "2026-10-18"
+      },
+      "userDescription": null,
+      "bestFor": {
+        "subjects": [
+          "street",
+          "documentary",
+          "portrait",
+          "landscape"
+        ],
+        "light": [
+          "hard-light",
+          "sunny-daylight"
+        ],
+        "mood": [
+          "gritty",
+          "high-contrast",
+          "vintage"
+        ]
+      },
+      "avoid": [
+        "scenes that need highlight and shadow detail",
+        "smooth skin portraits"
+      ],
+      "recommendationText": "An intense, deliberately rough black and white with stark highlights, deep shadows and coarse grain. The author uses it for city streets, harsh midday light and tense moments, and accepts the lost detail as part of the mood.",
+      "confidence": "medium",
+      "notes": "The page lists only film simulation, grain, tone, noise reduction and Clarity; Dynamic Range, white balance and Color Chrome are not given and are left at defaults. The author says Clarity +3 pauses the camera after every shot and suggests setting it to 0, which is how it is written here."
     }
   ]
 }

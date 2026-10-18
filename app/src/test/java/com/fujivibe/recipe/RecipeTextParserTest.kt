@@ -127,4 +127,13 @@ class RecipeTextParserTest {
         assertNull(result.recipe)
         assertTrue(result.warnings.single().contains("Kodak Gold 200"))
     }
+
+    @Test
+    fun `fluorescent and auto priority white balances are recognised`() {
+        fun mode(text: String) =
+            RecipeTextParser.parse("Film Simulation: Eterna\nWhite Balance: $text", "W").recipe!!.settings.whiteBalance!!.mode
+        assertEquals(WhiteBalanceMode.FLUORESCENT_3, mode("Fluorescent 3, -6 Red & -4 Blue"))
+        assertEquals(WhiteBalanceMode.AUTO_WHITE_PRIORITY, mode("Auto White Priority, +2 Red & -3 Blue"))
+        assertEquals(WhiteBalanceMode.AUTO, mode("Auto, +2 Red & -3 Blue"))
+    }
 }

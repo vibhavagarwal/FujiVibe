@@ -36,7 +36,9 @@ class RecipeToSlotTest {
 
     private fun assertSameSettings(expected: SlotDump, write: SlotWrite) {
         for (code in 0xD18E..0xD1A5) {
-            assertEquals(expected.value(code), write.values.getValue(code).u16(0), "property ${Integer.toHexString(code).uppercase()}")
+            // Clarity is never written (it slows saving), whatever the slot held.
+            val want = if (code == 0xD1A2) 0 else expected.value(code)
+            assertEquals(want, write.values.getValue(code).u16(0), "property ${Integer.toHexString(code).uppercase()}")
         }
     }
 
@@ -184,5 +186,37 @@ class RecipeToSlotTest {
 
         assertTrue(notes.any { it.contains("Monochromatic") })
         assertTrue(notes.any { it.contains("High ISO NR -2") })
+    }
+
+    @Test
+    fun `Clarity is written as 0 whatever the recipe says, and a filter is suggested instead`() {
+        val r = recipe("CL", FujiFilmSim.CLASSIC_CHROME, RecipeSettings(clarity = -3.0))
+
+        assertEquals(0, r.toSlotValues(ccNeg).values.getValue(0xD1A2).u16(0)) // the slot held -4
+        assertEquals("CineBloom 10% or Black Pro-Mist 1/4", r.diffusionFilter())
+        assertTrue(r.clarityNote()!!.contains("not written"))
+    }
+
+    @Test
+    fun `filter strength follows how negative the Clarity is, and positive Clarity gets no filter`() {
+        fun filter(c: Double?) = recipe("F", FujiFilmSim.PROVIA, RecipeSettings(clarity = c)).diffusionFilter()
+        assertEquals("CineBloom 5% or Black Pro-Mist 1/8", filter(-1.0))
+        assertEquals("CineBloom 10% or Black Pro-Mist 1/4", filter(-4.0))
+        assertEquals("CineBloom 20% or Black Pro-Mist 1/2", filter(-5.0))
+        assertEquals(null, filter(0.0))
+        assertEquals(null, filter(2.0))
+        assertEquals(null, filter(null))
+        assertTrue(recipe("F", FujiFilmSim.PROVIA, RecipeSettings(clarity = 2.0)).clarityNote()!!.contains("less bite"))
+    }
+
+    @Test
+    fun `fluorescent and auto priority modes are written with their codes and flagged until confirmed`() {
+        fun write(mode: WhiteBalanceMode) = recipe("W", FujiFilmSim.ETERNA, RecipeSettings(whiteBalance = WhiteBalance(mode, shiftR = -6, shiftB = -4))).toSlotValues(empty)
+
+        assertEquals(0x8003, write(WhiteBalanceMode.FLUORESCENT_3).values.getValue(0xD199).u16(0))
+        assertEquals(0x8002, write(WhiteBalanceMode.FLUORESCENT_2).values.getValue(0xD199).u16(0))
+        assertEquals(0x8020, write(WhiteBalanceMode.AUTO_WHITE_PRIORITY).values.getValue(0xD199).u16(0))
+        assertTrue(write(WhiteBalanceMode.FLUORESCENT_3).notes.any { it.contains("not yet confirmed") })
+        assertEquals(emptyList<String>(), write(WhiteBalanceMode.DAYLIGHT).notes)
     }
 }
