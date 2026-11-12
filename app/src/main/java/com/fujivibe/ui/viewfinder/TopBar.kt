@@ -2,6 +2,7 @@ package com.fujivibe.ui.viewfinder
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,40 +38,47 @@ import com.fujivibe.viewfinder.isLevel
 import com.fujivibe.viewfinder.photoFrameInView
 
 /**
- * A quiet "FUJIVIBE" wordmark on the left, the way camera makers print their name on the body;
- * develop-after-shot, grid, level, timer and aspect-ratio toggles on the right, amber while on, then the Library.
+ * A quiet "FUJIVIBE" wordmark on the left, the way camera makers print their name on the body, with the
+ * aspect ratio beside it whenever it is not the sensor's own 4:3 (it is set in Settings, so this keeps it
+ * from being forgotten). On the right: develop-after-shot and the timer (amber while on), the Library, Settings.
  */
 @Composable
 fun TopBar(
-    gridOn: Boolean,
-    onGridToggle: () -> Unit,
-    levelOn: Boolean,
-    onLevelToggle: () -> Unit,
+    aspect: AspectChoice,
     timer: TimerChoice,
     onTimerNext: () -> Unit,
-    aspect: AspectChoice,
-    onAspectNext: () -> Unit,
     developAfterShot: Boolean,
     onDevelopAfterShotToggle: () -> Unit,
     onLibraryClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+        modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
     ) {
         Text(
             "FUJIVIBE",
             color = Paper.copy(alpha = 0.55f),
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
-            letterSpacing = 3.sp,
+            letterSpacing = 2.sp,
         )
+        if (aspect != AspectChoice.FOUR_THREE) {
+            Text(
+                aspect.label,
+                color = Paper,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .border(1.dp, Paper.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
         Box(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
             ToggleIcon(R.drawable.ic_develop, "Develop after each shot", active = developAfterShot, onClick = onDevelopAfterShotToggle)
-            ToggleIcon(R.drawable.ic_grid_on, "Grid", active = gridOn, onClick = onGridToggle)
-            ToggleIcon(R.drawable.ic_straighten, "Level line", active = levelOn, onClick = onLevelToggle)
             ToggleIcon(
                 when (timer) {
                     TimerChoice.OFF -> R.drawable.ic_timer
@@ -80,18 +89,9 @@ fun TopBar(
                 active = timer != TimerChoice.OFF,
                 onClick = onTimerNext,
             )
-            Text(
-                aspect.label,
-                color = Paper,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable(onClick = onAspectNext)
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-            )
-            // Not a setting that is on or off, but a way to another screen; never amber.
+            // Not settings that are on or off, but ways to other screens; never amber.
             ToggleIcon(R.drawable.ic_photo_library, "Library", active = false, onClick = onLibraryClick)
+            ToggleIcon(R.drawable.ic_settings, "Settings", active = false, onClick = onSettingsClick)
         }
     }
 }

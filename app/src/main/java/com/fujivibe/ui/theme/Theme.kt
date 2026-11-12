@@ -52,8 +52,11 @@ private val ColorScheme = darkColorScheme(
     inverseOnSurface = Ink,
 )
 
+/** The phone's own font (on a Pixel, the one Settings and Photos use), for every screen but the Viewfinder. */
+private val AppTypography: Typography = Typography()
+
 /** Every text style in Barlow, with even-width digits so changing numbers don't jiggle. */
-private val AppTypography: Typography = Typography().let { base ->
+private val ReadoutTypography: Typography = Typography().let { base ->
     fun TextStyle.inBarlow() = copy(fontFamily = Barlow, fontFeatureSettings = "tnum")
     base.copy(
         displayLarge = base.displayLarge.inBarlow(),
@@ -72,6 +75,12 @@ private val AppTypography: Typography = Typography().let { base ->
         labelMedium = base.labelMedium.inBarlow(),
         labelSmall = base.labelSmall.inBarlow(),
     )
+}
+
+/** Barlow for the Viewfinder's readouts (zoom, ISO, shutter, aspect, counts), where narrow even-width digits help. */
+@Composable
+fun ReadoutTheme(content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = MaterialTheme.colorScheme, typography = ReadoutTypography, content = content)
 }
 
 @Composable
